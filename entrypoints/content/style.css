@@ -16,6 +16,52 @@
   animation: quizBubbleAppear 0.3s ease-out;
 }
 
+/* Magnifying Glass Icon */
+#quiz-solver-magnify-icon {
+  position: absolute;
+  z-index: 10001;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer !important;
+  font-size: 14px;
+  color: white;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+  transition: all 0.2s ease;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(5px);
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  pointer-events: auto !important;
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+#quiz-solver-magnify-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+  background: linear-gradient(135deg, #7c8cff 0%, #8a5fbf 100%);
+  cursor: pointer !important;
+}
+
+#quiz-solver-magnify-icon:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 15px rgba(102, 126, 234, 0.5);
+  cursor: pointer !important;
+}
+
+.quiz-magnify-icon {
+  animation: magnifyAppear 0.3s ease-out;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+
 /* Bubble Content */
 .quiz-bubble-content {
   background: white;
@@ -197,6 +243,17 @@
   }
 }
 
+@keyframes magnifyAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.5) rotate(-10deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
 @keyframes quizSpin {
   to {
     transform: rotate(360deg);
@@ -222,6 +279,13 @@
     left: 5vw !important;
     right: 5vw !important;
     transform: none !important;
+  }
+  
+  #quiz-solver-magnify-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+    cursor: pointer !important;
   }
   
   .quiz-solver-welcome {
@@ -261,6 +325,12 @@
     border: 2px solid #000;
   }
   
+  #quiz-solver-magnify-icon {
+    border: 3px solid #fff;
+    background: #000 !important;
+    cursor: pointer !important;
+  }
+  
   .quiz-bubble-content {
     border: 2px solid #000;
   }
@@ -269,6 +339,7 @@
 /* Reduce Motion for Accessibility */
 @media (prefers-reduced-motion: reduce) {
   #quiz-solver-bubble,
+  #quiz-solver-magnify-icon,
   .quiz-solver-welcome {
     animation: none;
   }

@@ -11,6 +11,7 @@ export default defineContentScript({
     class SmartQuizSolver {
       constructor() {
         this.answerBubble = null;
+        this.magnifyingIcon = null;
         this.lastSelection = null;
         this.isProcessing = false;
         this.init();
@@ -18,12 +19,13 @@ export default defineContentScript({
 
       init() {
         this.createAnswerBubble();
+        this.createMagnifyingIcon();
         this.attachEventListeners();
         console.log('🔍 Smart Quiz Solver v2.0 loaded successfully!');
         
-        // Test bubble to ensure it's working
+        // Welcome message
         setTimeout(() => {
-          this.showMessage('🎉 Quiz Solver Ready! Highlight text and right-click or press Ctrl+Shift+Q', 'success');
+          this.showMessage('🎉 Quiz Solver Ready! Highlight text and click the 🔍 icon!', 'success');
           setTimeout(() => this.hideAnswerBubble(), 3000);
         }, 1000);
       }
@@ -36,60 +38,154 @@ export default defineContentScript({
         document.body.appendChild(this.answerBubble);
       }
 
+      createMagnifyingIcon() {
+        // Create magnifying glass icon
+        this.magnifyingIcon = document.createElement('div');
+        this.magnifyingIcon.id = 'quiz-solver-magnify-icon';
+        this.magnifyingIcon.innerHTML = '🔍';
+        this.magnifyingIcon.className = 'quiz-magnify-icon';
+        this.magnifyingIcon.style.display = 'none';
+        this.magnifyingIcon.title = 'Click to solve with AI';
+        
+        // Ensure proper cursor and interaction
+        this.magnifyingIcon.style.cursor = 'pointer';
+        this.magnifyingIcon.style.userSelect = 'none';
+        this.magnifyingIcon.style.pointerEvents = 'auto';
+        this.magnifyingIcon.style.zIndex = '10001';
+        
+        // Prevent text selection and context menu
+        this.magnifyingIcon.addEventListener('selectstart', (e) => e.preventDefault());
+        this.magnifyingIcon.addEventListener('contextmenu', (e) => e.preventDefault());
+        this.magnifyingIcon.addEventListener('dragstart', (e) => e.preventDefault());
+        
+        // Add click handler
+        this.magnifyingIcon.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          
+          if (this.lastSelection && this.lastSelection.text) {
+            this.solveQuestion(this.lastSelection.text);
+            this.hideMagnifyingIcon();
+          }
+        });
+
+        // Add hover effects with cursor enforcement
+        this.magnifyingIcon.addEventListener('mouseenter', () => {
+          this.magnifyingIcon.style.cursor = 'pointer';
+        });
+
+        this.magnifyingIcon.addEventListener('mouseover', () => {
+          this.magnifyingIcon.style.cursor = 'pointer';
+        });
+
+        document.body.appendChild(this.magnifyingIcon);
+      }
+
       attachEventListeners() {
         // Listen for text selection
-        document.addEventListener('mouseup', () => {
-          setTimeout(() => this.handleTextSelection(), 100);
+        document.addEventListener('mouseup', (e) => {
+          setTimeout(() => this.handleTextSelection(e), 150);
         });
 
         // Listen for keyboard events
-        document.addEventListener('keyup', () => {
-          setTimeout(() => this.handleTextSelection(), 100);
+        document.addEventListener('keyup', (e) => {
+          setTimeout(() => this.handleTextSelection(e), 150);
+        });
+
+        // Hide icon when clicking elsewhere
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('#quiz-solver-magnify-icon') && 
+              !e.target.closest('#quiz-solver-bubble')) {
+            this.hideMagnifyingIcon();
+          }
+        });
+
+        // Hide icon on scroll
+        document.addEventListener('scroll', () => {
+          this.hideMagnifyingIcon();
         });
 
         // Listen for messages from background script
         browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-          console.log('📨 Content script received message:', request);
-          
           if (request.action === 'solveQuestion' && request.text) {
-            console.log('🔍 Solving question:', request.text);
             this.solveQuestion(request.text);
             sendResponse({ success: true });
           } else if (request.action === 'solveSelectedText') {
-            console.log('⌨️ Handling keyboard shortcut');
             this.handleKeyboardShortcut();
             sendResponse({ success: true });
           }
           
-          return true; // Keep message channel open for async response
+          return true;
         });
 
         // Auto-detect quiz elements on page load
         this.detectQuizElements();
       }
 
-      handleTextSelection() {
+      handleTextSelection(event) {
         const selection = window.getSelection();
         const selectedText = selection.toString().trim();
 
-        if (selectedText && selectedText.length > 5) {
-          this.lastSelection = {
-            text: selectedText,
-            range: selection.getRangeAt(0)
-          };
-
-          console.log('📝 Text selected:', selectedText.substring(0, 50) + '...');
-          // Show subtle indicator that text is selected and ready for AI
-          this.showSelectionIndicator();
+        if (selectedText && selectedText.length > 5 && selection.rangeCount > 0) {
+          try {
+            this.lastSelection = {
+              text: selectedText,
+              range: selection.getRangeAt(0)
+            };
+            
+            // Show magnifying icon near cursor
+            this.showMagnifyingIcon(event);
+            
+            // Also show selection indicator
+            this.showSelectionIndicator();
+          } catch (error) {
+            console.error('❌ Error handling selection:', error);
+          }
         } else {
+          this.hideMagnifyingIcon();
           this.hideAnswerBubble();
+        }
+      }
+
+      showMagnifyingIcon(event) {
+        if (!this.lastSelection || !this.lastSelection.range) return;
+
+        try {
+          const rect = this.lastSelection.range.getBoundingClientRect();
+          
+          // Position icon above the selection, slightly to the right
+          const iconX = Math.min(rect.right + window.scrollX - 10, window.innerWidth - 40);
+          const iconY = Math.max(rect.top + window.scrollY - 35, 10);
+          
+          this.magnifyingIcon.style.position = 'absolute';
+          this.magnifyingIcon.style.left = `${iconX}px`;
+          this.magnifyingIcon.style.top = `${iconY}px`;
+          this.magnifyingIcon.style.display = 'block';
+          this.magnifyingIcon.style.zIndex = '10001';
+          
+          // Add a subtle animation
+          this.magnifyingIcon.style.transform = 'scale(0.8)';
+          setTimeout(() => {
+            if (this.magnifyingIcon.style.display === 'block') {
+              this.magnifyingIcon.style.transform = 'scale(1)';
+            }
+          }, 50);
+        } catch (error) {
+          console.error('❌ Error positioning magnifying icon:', error);
+        }
+      }
+
+      hideMagnifyingIcon() {
+        if (this.magnifyingIcon) {
+          this.magnifyingIcon.style.display = 'none';
         }
       }
 
       handleKeyboardShortcut() {
         if (this.lastSelection && this.lastSelection.text) {
-          console.log('🚀 Keyboard shortcut triggered for:', this.lastSelection.text.substring(0, 50) + '...');
           this.solveQuestion(this.lastSelection.text);
+          this.hideMagnifyingIcon();
         } else {
           this.showMessage('❌ Please select some text first', 'error');
         }
@@ -100,11 +196,10 @@ export default defineContentScript({
         if (this.lastSelection && this.lastSelection.range) {
           const rect = this.lastSelection.range.getBoundingClientRect();
           
-          this.answerBubble.innerHTML = `
-            <div class="quiz-bubble-indicator">
-              <div class="quiz-bubble-tip">🔍 Right-click "Solve with AI" or press Ctrl+Shift+Q</div>
-            </div>
-          `;
+          this.answerBubble.innerHTML = 
+            '<div class="quiz-bubble-indicator">' +
+              '<div class="quiz-bubble-tip">🔍 Click the magnifying glass or right-click "Solve with AI"</div>' +
+            '</div>';
           
           this.answerBubble.className = 'quiz-bubble quiz-bubble-indicator-mode';
           this.answerBubble.style.display = 'block';
@@ -127,18 +222,17 @@ export default defineContentScript({
         }
         
         this.isProcessing = true;
+        this.hideMagnifyingIcon();
         console.log('🤖 Starting to solve question:', questionText);
 
         try {
           // Enhance question with context
           const enhancedQuestion = this.enhanceQuestionWithContext(questionText);
-          console.log('📝 Enhanced question:', enhancedQuestion);
           
           this.showMessage('🤖 AI is analyzing your question...', 'loading');
 
           // Get API key
           const response = await browser.runtime.sendMessage({ action: 'getApiKey' });
-          console.log('🔑 API key response:', response ? 'received' : 'not received');
           
           if (!response || !response.apiKey) {
             this.showMessage('⚠️ Please set up your API key in the extension popup', 'error');
@@ -147,7 +241,7 @@ export default defineContentScript({
 
           // Call Gemini API
           const answer = await this.callGeminiAPI(enhancedQuestion, response.apiKey);
-          console.log('✅ Got answer from AI:', answer);
+          console.log('✅ Got answer from AI');
           this.showMessage(`✅ ${answer}`, 'success');
 
         } catch (error) {
@@ -205,17 +299,14 @@ export default defineContentScript({
       }
 
       async callGeminiAPI(questionText, apiKey) {
-        const prompt = `You are a smart quiz solver. Analyze this question and provide the correct answer.
-
-    ${questionText}
-
-    Instructions:
-    - If it's a multiple choice question, provide the correct option letter (A, B, C, D) followed by a brief explanation
-    - If it's a direct question, provide a clear, concise answer
-    - Be accurate and confident in your response
-    - Keep the answer brief but informative
-
-    Answer:`;
+        const prompt = "You are a smart quiz solver. Analyze this question and provide the correct answer.\n\n" +
+          questionText + 
+          "\n\nInstructions:\n" +
+          "- If it's a multiple choice question, provide the correct option letter (A, B, C, D) followed by a brief explanation\n" +
+          "- If it's a direct question, provide a clear, concise answer\n" +
+          "- Be accurate and confident in your response\n" +
+          "- Keep the answer brief but informative\n\n" +
+          "Answer:";
 
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
           method: 'POST',
@@ -251,12 +342,11 @@ export default defineContentScript({
       }
 
       showMessage(message, type = 'info') {
-        this.answerBubble.innerHTML = `
-          <div class="quiz-bubble-content">
-            <div class="quiz-bubble-close">×</div>
-            <div class="quiz-bubble-message">${message}</div>
-          </div>
-        `;
+        this.answerBubble.innerHTML = 
+          '<div class="quiz-bubble-content">' +
+            '<div class="quiz-bubble-close">×</div>' +
+            '<div class="quiz-bubble-message">' + message + '</div>' +
+          '</div>';
 
         this.answerBubble.className = `quiz-bubble quiz-bubble-${type}`;
         this.answerBubble.style.display = 'block';
@@ -330,17 +420,16 @@ export default defineContentScript({
 
         const welcomeDiv = document.createElement('div');
         welcomeDiv.className = 'quiz-solver-welcome';
-        welcomeDiv.innerHTML = `
-          <div class="welcome-content">
-            <div class="welcome-icon">🔍</div>
-            <div class="welcome-text">
-              <strong>Quiz Solver Active!</strong><br>
-              Highlight any question → Right-click → "Solve with AI"<br>
-              Or press <kbd>Ctrl+Shift+Q</kbd>
-            </div>
-            <div class="welcome-close">×</div>
-          </div>
-        `;
+        welcomeDiv.innerHTML = 
+          '<div class="welcome-content">' +
+            '<div class="welcome-icon">🔍</div>' +
+            '<div class="welcome-text">' +
+              '<strong>Quiz Solver Active!</strong><br>' +
+              'Highlight text → Click 🔍 or Right-click → "Solve with AI"<br>' +
+              'Or press <kbd>Ctrl+Shift+Q</kbd>' +
+            '</div>' +
+            '<div class="welcome-close">×</div>' +
+          '</div>';
         
         document.body.appendChild(welcomeDiv);
 

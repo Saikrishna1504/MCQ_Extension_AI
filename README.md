@@ -4,8 +4,10 @@ An intelligent Chrome extension built with the modern **WXT framework** that hel
 
 ## ✨ Features
 
+- **🔍 Click-to-Solve Icon**: Select text and click the magnifying glass that appears for instant AI answers
 - **Smart MCQ Detection**: Automatically detects multiple choice questions on any webpage
-- **Floating Search Icon**: Shows a convenient search icon when you select an MCQ option
+- **Right-Click Integration**: Right-click context menu with "Solve with AI" option
+- **Keyboard Shortcuts**: Press `Ctrl+Shift+Q` to solve selected text
 - **AI-Powered Answers**: Uses Google Gemini API to find correct answers
 - **Multiple Formats**: Supports various MCQ formats (radio buttons, checkboxes, text-based options)
 - **Clean UI**: Simple, non-intrusive interface with beautiful popups
@@ -84,11 +86,20 @@ mcq-answer-finder/
 
 ## 🎯 Usage
 
-1. **Install the extension** in Chrome Developer Mode
-2. **Navigate to any webpage** with multiple choice questions
-3. **Highlight text** containing a question
-4. **Right-click** and select "🔍 Solve with AI" OR press `Ctrl+Shift+Q`
-5. **View the AI-powered answer** in the popup that appears
+### Method 1: Click-to-Solve (NEW!)
+1. **Highlight any text** containing a question on any webpage
+2. **Look for the 🔍 magnifying glass icon** that appears above your selection
+3. **Click the icon** for instant AI-powered answers
+
+### Method 2: Right-Click Menu
+1. **Highlight text** containing a question
+2. **Right-click** and select "🔍 Solve with AI"
+3. **View the AI-powered answer** in the popup that appears
+
+### Method 3: Keyboard Shortcut
+1. **Highlight text** containing a question
+2. **Press `Ctrl+Shift+Q`** (or `Cmd+Shift+Q` on Mac)
+3. **Get instant answers**
 
 ## 🔧 Supported Question Formats
 
@@ -108,7 +119,7 @@ mcq-answer-finder/
 
 ### Architecture
 - **Background Script**: Handles context menus, keyboard shortcuts, and API key management
-- **Content Script**: Detects quiz elements, manages UI overlays, and processes questions
+- **Content Script**: Detects quiz elements, manages UI overlays, processes questions, and handles the magnifying glass icon
 - **Popup**: Simple interface for extension setup and API key configuration
 
 ### API Integration
@@ -141,6 +152,11 @@ The test page includes various MCQ formats to verify functionality.
 - Check browser console for error messages
 - Ensure extension has permissions for the current website
 
+### Magnifying glass icon not appearing?
+- Make sure you've selected at least 5 characters of text
+- The icon appears above the selected text - look carefully
+- Try scrolling or clicking elsewhere to reset, then select text again
+
 ### API key issues?
 - Confirm API key is active and has proper quotas
 - Test API key directly in Google AI Studio
@@ -149,7 +165,7 @@ The test page includes various MCQ formats to verify functionality.
 ### MCQ detection problems?
 - Extension works best with standard HTML form elements
 - Some heavily customized quiz interfaces may not be detected
-- Try selecting text manually and using right-click context menu
+- Try selecting text manually and using the click-to-solve or right-click methods
 
 ## 🚀 Development
 

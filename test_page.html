@@ -3,222 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCQ Test Page - Extension Demo</title>
+    <title>MCQ Answer Finder - Test Page</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            line-height: 1.6;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
         }
         
-        .question {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         
-        .question h3 {
-            color: #333;
-            margin-top: 0;
-        }
-        
-        .options {
-            margin: 15px 0;
-        }
-        
-        .option {
-            margin: 8px 0;
-            padding: 8px;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-        
-        .option:hover {
-            background-color: #e9e9e9;
-        }
-        
-        .option input {
-            margin-right: 10px;
-        }
-        
-        .option label {
-            cursor: pointer;
-            display: inline-block;
-            width: 100%;
-        }
-        
-        .instructions {
+        .feature-highlight {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-        
-        .instructions h2 {
-            margin-top: 0;
-        }
-        
-        .note {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 15px;
-            border-radius: 4px;
+            border-radius: 10px;
             margin: 20px 0;
+            text-align: center;
+        }
+        
+        .quiz-section {
+            background: white;
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-left: 5px solid #667eea;
+        }
+        
+        .question {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #2c3e50;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .options {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .options li {
+            margin: 10px 0;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .options li:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .instructions {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .highlight-text {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .emoji {
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>🔍 MCQ Answer Finder - Test Page</h1>
+        <p>Test your AI-powered quiz solver with these sample questions</p>
+    </div>
+
+    <div class="feature-highlight">
+        <h3>🆕 New Feature: Click-to-Solve!</h3>
+        <p><strong>Select any question text below</strong> and you'll see a <span class="emoji">🔍</span> magnifying glass icon appear above it.</p>
+        <p><strong>Click the icon</strong> for instant AI answers, or use the traditional right-click method!</p>
+    </div>
+
     <div class="instructions">
-        <h2>🔍 MCQ Answer Finder - Test Page</h2>
-        <p>This page contains sample multiple choice questions to test the extension.</p>
-        <p><strong>How to use:</strong></p>
+        <h3>📝 How to Test:</h3>
         <ul>
-            <li>Install the MCQ Answer Finder extension</li>
-            <li>Set your Google Gemini API key in the extension popup</li>
-            <li>Click on any MCQ option below</li>
-            <li>A floating search icon will appear - click it to get the answer!</li>
+            <li><strong>Method 1 (NEW):</strong> <span class="highlight-text">Select question text</span> → <span class="highlight-text">Click 🔍 icon</span> that appears</li>
+            <li><strong>Method 2:</strong> <span class="highlight-text">Select question text</span> → <span class="highlight-text">Right-click</span> → <span class="highlight-text">"Solve with AI"</span></li>
+            <li><strong>Method 3:</strong> <span class="highlight-text">Select text</span> → <span class="highlight-text">Press Ctrl+Shift+Q</span></li>
+        </ul>
+        <p><strong>💡 Tip:</strong> The magnifying glass icon appears above the selected text for quick access!</p>
+    </div>
+
+    <div class="quiz-section">
+        <h3>🧠 Computer Science Questions</h3>
+        
+        <div class="question">
+            What is the time complexity of binary search in a sorted array?
+        </div>
+        <ul class="options">
+            <li>A) O(n)</li>
+            <li>B) O(log n)</li>
+            <li>C) O(n²)</li>
+            <li>D) O(1)</li>
         </ul>
     </div>
-    
-    <div class="note">
-        <strong>Note:</strong> Make sure you have set up your Google Gemini API key in the extension popup before testing.
-    </div>
 
-    <div class="question">
-        <h3>Question 1: What is the capital of France?</h3>
-        <div class="options">
-            <div class="option">
-                <input type="radio" id="q1a" name="q1" value="London">
-                <label for="q1a">A. London</label>
-            </div>
-            <div class="option">
-                <input type="radio" id="q1b" name="q1" value="Berlin">
-                <label for="q1b">B. Berlin</label>
-            </div>
-            <div class="option">
-                <input type="radio" id="q1c" name="q1" value="Paris">
-                <label for="q1c">C. Paris</label>
-            </div>
-            <div class="option">
-                <input type="radio" id="q1d" name="q1" value="Madrid">
-                <label for="q1d">D. Madrid</label>
-            </div>
+    <div class="quiz-section">
+        <h3>🌍 Geography Questions</h3>
+        
+        <div class="question">
+            Which is the longest river in the world?
         </div>
-    </div>
-
-    <div class="question">
-        <h3>Question 2: Which programming language is known for its use in artificial intelligence?</h3>
-        <div class="options">
-            <div class="option">
-                <input type="radio" id="q2a" name="q2" value="Java">
-                <label for="q2a">A. Java</label>
-            </div>
-            <div class="option">
-                <input type="radio" id="q2b" name="q2" value="Python">
-                <label for="q2b">B. Python</label>
-            </div>
-            <div class="option">
-                <input type="radio" id="q2c" name="q2" value="C++">
-                <label for="q2c">C. C++</label>
-            </div>
-            <div class="option">
-                <input type="radio" id="q2d" name="q2" value="JavaScript">
-                <label for="q2d">D. JavaScript</label>
-            </div>
-        </div>
-    </div>
-
-    <div class="question">
-        <h3>Question 3: What is the chemical symbol for gold?</h3>
-        <div class="options">
-            <div class="option">
-                <input type="radio" id="q3a" name="q3" value="Go">
-                <label for="q3a">A. Go</label>
-            </div>
-            <div class="option">
-                <input type="radio" id="q3b" name="q3" value="Au">
-                <label for="q3b">B. Au</label>
-            </div>
-            <div class="option">
-                <input type="radio" id="q3c" name="q3" value="Ag">
-                <label for="q3c">C. Ag</label>
-            </div>
-            <div class="option">
-                <input type="radio" id="q3d" name="q3" value="Gd">
-                <label for="q3d">D. Gd</label>
-            </div>
-        </div>
-    </div>
-
-    <div class="question">
-        <h3>Question 4: Which of the following is the largest planet in our solar system?</h3>
-        <div class="options">
-            <div class="option">
-                <input type="radio" id="q4a" name="q4" value="Earth">
-                <label for="q4a">A. Earth</label>
-            </div>
-            <div class="option">
-                <input type="radio" id="q4b" name="q4" value="Jupiter">
-                <label for="q4b">B. Jupiter</label>
-            </div>
-            <div class="option">
-                <input type="radio" id="q4c" name="q4" value="Saturn">
-                <label for="q4c">C. Saturn</label>
-            </div>
-            <div class="option">
-                <input type="radio" id="q4d" name="q4" value="Neptune">
-                <label for="q4d">D. Neptune</label>
-            </div>
-        </div>
-    </div>
-
-    <div class="question">
-        <h3>Question 5: Select the correct statements about HTTP (Multiple correct answers):</h3>
-        <div class="options">
-            <div class="option">
-                <input type="checkbox" id="q5a" name="q5" value="stateless">
-                <label for="q5a">A. HTTP is a stateless protocol</label>
-            </div>
-            <div class="option">
-                <input type="checkbox" id="q5b" name="q5" value="encrypted">
-                <label for="q5b">B. HTTP traffic is always encrypted</label>
-            </div>
-            <div class="option">
-                <input type="checkbox" id="q5c" name="q5" value="port80">
-                <label for="q5c">C. HTTP typically uses port 80</label>
-            </div>
-            <div class="option">
-                <input type="checkbox" id="q5d" name="q5" value="binary">
-                <label for="q5d">D. HTTP uses binary protocol for communication</label>
-            </div>
-        </div>
-    </div>
-
-    <div class="question">
-        <h3>Question 6: Alternative format - Which of these is a JavaScript framework?</h3>
-        <div class="options">
-            <div class="option">1) Django</div>
-            <div class="option">2) React</div>
-            <div class="option">3) Laravel</div>
-            <div class="option">4) Spring Boot</div>
-        </div>
-    </div>
-
-    <div class="note">
-        <strong>Testing Tips:</strong>
-        <ul>
-            <li>Try clicking on different types of options (radio buttons, checkboxes, text options)</li>
-            <li>Test with questions that have clear correct answers</li>
-            <li>Check if the extension correctly identifies the question context</li>
-            <li>Verify that the floating icon appears in the right position</li>
+        <ul class="options">
+            <li>A) Amazon River</li>
+            <li>B) Nile River</li>
+            <li>C) Mississippi River</li>
+            <li>D) Yangtze River</li>
         </ul>
+    </div>
+
+    <div class="quiz-section">
+        <h3>🔬 Science Questions</h3>
+        
+        <div class="question">
+            What is the chemical symbol for gold?
+        </div>
+        <ul class="options">
+            <li>A) Go</li>
+            <li>B) Gd</li>
+            <li>C) Au</li>
+            <li>D) Ag</li>
+        </ul>
+    </div>
+
+    <div class="quiz-section">
+        <h3>📚 Literature Questions</h3>
+        
+        <div class="question">
+            Who wrote the novel "1984"?
+        </div>
+        <ul class="options">
+            <li>A) Aldous Huxley</li>
+            <li>B) George Orwell</li>
+            <li>C) Ray Bradbury</li>
+            <li>D) H.G. Wells</li>
+        </ul>
+    </div>
+
+    <div class="quiz-section">
+        <h3>🧮 Mathematics Questions</h3>
+        
+        <div class="question">
+            What is the derivative of sin(x)?
+        </div>
+        <ul class="options">
+            <li>A) cos(x)</li>
+            <li>B) -cos(x)</li>
+            <li>C) tan(x)</li>
+            <li>D) -sin(x)</li>
+        </ul>
+    </div>
+
+    <div class="quiz-section">
+        <h3>🏛️ History Questions</h3>
+        
+        <div class="question">
+            In which year did World War II end?
+        </div>
+        <ul class="options">
+            <li>A) 1944</li>
+            <li>B) 1945</li>
+            <li>C) 1946</li>
+            <li>D) 1947</li>
+        </ul>
+    </div>
+
+    <div class="instructions">
+        <h3>🎯 Testing Tips:</h3>
+        <ul>
+            <li><strong>Select entire questions</strong> including options for best results</li>
+            <li><strong>Try selecting just the question</strong> without options</li>
+            <li><strong>Test on different question types</strong> (multiple choice, true/false, etc.)</li>
+            <li><strong>Check your extension popup</strong> to ensure API key is configured</li>
+        </ul>
+        
+        <p><strong>🔧 Troubleshooting:</strong></p>
+        <ul>
+            <li>If the 🔍 icon doesn't appear, make sure you've selected enough text (5+ characters)</li>
+            <li>If no response comes, check that your Gemini API key is set up correctly</li>
+            <li>The icon disappears when you scroll or click elsewhere - this is normal!</li>
+        </ul>
+    </div>
+
+    <div class="feature-highlight">
+        <p><strong>🚀 Powered by Google Gemini AI</strong></p>
+        <p>This extension uses advanced AI to analyze questions and provide accurate answers!</p>
     </div>
 </body>
 </html> 
