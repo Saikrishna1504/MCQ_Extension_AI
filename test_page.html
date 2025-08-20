@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQ Test Page - Extension Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .question {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .question h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        
+        .options {
+            margin: 15px 0;
+        }
+        
+        .option {
+            margin: 8px 0;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .option:hover {
+            background-color: #e9e9e9;
+        }
+        
+        .option input {
+            margin-right: 10px;
+        }
+        
+        .option label {
+            cursor: pointer;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .instructions {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .instructions h2 {
+            margin-top: 0;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions">
+        <h2>🔍 MCQ Answer Finder - Test Page</h2>
+        <p>This page contains sample multiple choice questions to test the extension.</p>
+        <p><strong>How to use:</strong></p>
+        <ul>
+            <li>Install the MCQ Answer Finder extension</li>
+            <li>Set your Google Gemini API key in the extension popup</li>
+            <li>Click on any MCQ option below</li>
+            <li>A floating search icon will appear - click it to get the answer!</li>
+        </ul>
+    </div>
+    
+    <div class="note">
+        <strong>Note:</strong> Make sure you have set up your Google Gemini API key in the extension popup before testing.
+    </div>
+
+    <div class="question">
+        <h3>Question 1: What is the capital of France?</h3>
+        <div class="options">
+            <div class="option">
+                <input type="radio" id="q1a" name="q1" value="London">
+                <label for="q1a">A. London</label>
+            </div>
+            <div class="option">
+                <input type="radio" id="q1b" name="q1" value="Berlin">
+                <label for="q1b">B. Berlin</label>
+            </div>
+            <div class="option">
+                <input type="radio" id="q1c" name="q1" value="Paris">
+                <label for="q1c">C. Paris</label>
+            </div>
+            <div class="option">
+                <input type="radio" id="q1d" name="q1" value="Madrid">
+                <label for="q1d">D. Madrid</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="question">
+        <h3>Question 2: Which programming language is known for its use in artificial intelligence?</h3>
+        <div class="options">
+            <div class="option">
+                <input type="radio" id="q2a" name="q2" value="Java">
+                <label for="q2a">A. Java</label>
+            </div>
+            <div class="option">
+                <input type="radio" id="q2b" name="q2" value="Python">
+                <label for="q2b">B. Python</label>
+            </div>
+            <div class="option">
+                <input type="radio" id="q2c" name="q2" value="C++">
+                <label for="q2c">C. C++</label>
+            </div>
+            <div class="option">
+                <input type="radio" id="q2d" name="q2" value="JavaScript">
+                <label for="q2d">D. JavaScript</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="question">
+        <h3>Question 3: What is the chemical symbol for gold?</h3>
+        <div class="options">
+            <div class="option">
+                <input type="radio" id="q3a" name="q3" value="Go">
+                <label for="q3a">A. Go</label>
+            </div>
+            <div class="option">
+                <input type="radio" id="q3b" name="q3" value="Au">
+                <label for="q3b">B. Au</label>
+            </div>
+            <div class="option">
+                <input type="radio" id="q3c" name="q3" value="Ag">
+                <label for="q3c">C. Ag</label>
+            </div>
+            <div class="option">
+                <input type="radio" id="q3d" name="q3" value="Gd">
+                <label for="q3d">D. Gd</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="question">
+        <h3>Question 4: Which of the following is the largest planet in our solar system?</h3>
+        <div class="options">
+            <div class="option">
+                <input type="radio" id="q4a" name="q4" value="Earth">
+                <label for="q4a">A. Earth</label>
+            </div>
+            <div class="option">
+                <input type="radio" id="q4b" name="q4" value="Jupiter">
+                <label for="q4b">B. Jupiter</label>
+            </div>
+            <div class="option">
+                <input type="radio" id="q4c" name="q4" value="Saturn">
+                <label for="q4c">C. Saturn</label>
+            </div>
+            <div class="option">
+                <input type="radio" id="q4d" name="q4" value="Neptune">
+                <label for="q4d">D. Neptune</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="question">
+        <h3>Question 5: Select the correct statements about HTTP (Multiple correct answers):</h3>
+        <div class="options">
+            <div class="option">
+                <input type="checkbox" id="q5a" name="q5" value="stateless">
+                <label for="q5a">A. HTTP is a stateless protocol</label>
+            </div>
+            <div class="option">
+                <input type="checkbox" id="q5b" name="q5" value="encrypted">
+                <label for="q5b">B. HTTP traffic is always encrypted</label>
+            </div>
+            <div class="option">
+                <input type="checkbox" id="q5c" name="q5" value="port80">
+                <label for="q5c">C. HTTP typically uses port 80</label>
+            </div>
+            <div class="option">
+                <input type="checkbox" id="q5d" name="q5" value="binary">
+                <label for="q5d">D. HTTP uses binary protocol for communication</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="question">
+        <h3>Question 6: Alternative format - Which of these is a JavaScript framework?</h3>
+        <div class="options">
+            <div class="option">1) Django</div>
+            <div class="option">2) React</div>
+            <div class="option">3) Laravel</div>
+            <div class="option">4) Spring Boot</div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Testing Tips:</strong>
+        <ul>
+            <li>Try clicking on different types of options (radio buttons, checkboxes, text options)</li>
+            <li>Test with questions that have clear correct answers</li>
+            <li>Check if the extension correctly identifies the question context</li>
+            <li>Verify that the floating icon appears in the right position</li>
+        </ul>
+    </div>
+</body>
+</html> 

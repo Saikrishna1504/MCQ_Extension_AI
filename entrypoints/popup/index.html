@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 320px;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .container {
+      text-align: center;
+    }
+    
+    .header {
+      margin-bottom: 20px;
+    }
+    
+    .header h1 {
+      font-size: 20px;
+      margin: 0 0 8px 0;
+      font-weight: 600;
+    }
+    
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+      margin: 0;
+    }
+    
+    .status-card {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .status-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    
+    .status-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .status-desc {
+      font-size: 14px;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+    
+    .api-setup {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+      text-align: left;
+    }
+    
+    .api-setup h3 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    .input-group {
+      margin: 12px 0;
+    }
+    
+    .input-group label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 6px;
+      opacity: 0.9;
+    }
+    
+    .input-group input {
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      box-sizing: border-box;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+    
+    .btn-primary {
+      background: #28a745;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #218838;
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .usage-steps {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+      text-align: left;
+    }
+    
+    .usage-steps h3 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    .usage-steps ol {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    
+    .usage-steps li {
+      margin-bottom: 6px;
+    }
+    
+    .api-info {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-family: monospace;
+      margin-top: 12px;
+      opacity: 0.8;
+    }
+    
+    .loading {
+      opacity: 0.7;
+    }
+    
+    .error {
+      background: rgba(220, 53, 69, 0.2);
+      border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+    
+    .success {
+      background: rgba(40, 167, 69, 0.2);
+      border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .help-link {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: underline;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    
+    .help-link:hover {
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔍 MCQ Answer Finder</h1>
+      <p>AI-powered question solver</p>
+    </div>
+    
+    <div id="statusCard" class="status-card loading">
+      <div id="statusIcon" class="status-icon">⏳</div>
+      <div id="statusTitle" class="status-title">Setting up...</div>
+      <div id="statusDesc" class="status-desc">Initializing MCQ Answer Finder</div>
+    </div>
+    
+    <div id="apiSetup" class="api-setup hidden">
+      <h3>🔑 Enter Your Gemini API Key</h3>
+      <div class="input-group">
+        <label for="apiKeyInput">Google Gemini API Key:</label>
+        <input type="password" id="apiKeyInput" placeholder="AIzaSyA..." />
+      </div>
+      <div class="button-group">
+        <button id="testBtn" class="btn btn-secondary">Test</button>
+        <button id="saveBtn" class="btn btn-primary">Save</button>
+      </div>
+      <div style="text-align: center; margin-top: 8px;">
+        <span class="help-link" id="helpLink">How to get API key?</span>
+      </div>
+    </div>
+    
+    <div id="usageSteps" class="usage-steps hidden">
+      <h3>🚀 How to Use:</h3>
+      <ol>
+        <li><strong>Visit any webpage</strong> with MCQ questions</li>
+        <li><strong>Highlight text</strong> containing a question</li>
+        <li><strong>Right-click</strong> → "🔍 Solve with AI"</li>
+        <li><strong>Or press</strong> Ctrl+Shift+Q</li>
+      </ol>
+    </div>
+    
+    <div id="apiInfo" class="api-info hidden">
+      <span id="apiKeyDisplay">API Key: ✓ Connected</span>
+    </div>
+  </div>
+  
+  <script src="./popup.js" type="module"></script>
+</body>
+</html> 
