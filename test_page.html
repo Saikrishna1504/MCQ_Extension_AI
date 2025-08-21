@@ -100,19 +100,27 @@
     </div>
 
     <div class="feature-highlight">
-        <h3>🆕 New Feature: Click-to-Solve!</h3>
+        <h3>🆕 New Feature: Editable AI Prompt Dialog!</h3>
         <p><strong>Select any question text below</strong> and you'll see a <span class="emoji">🔍</span> magnifying glass icon appear above it.</p>
-        <p><strong>Click the icon</strong> for instant AI answers, or use the traditional right-click method!</p>
+        <p><strong>Click the icon</strong> to open a draggable, resizable dialog with an editable AI prompt!</p>
+        <p><strong>Default prompt:</strong> "Send me the answer and option number without explanation" - but you can customize it!</p>
     </div>
 
     <div class="instructions">
-        <h3>📝 How to Test:</h3>
+        <h3>📝 How to Test the New Dialog:</h3>
         <ul>
-            <li><strong>Method 1 (NEW):</strong> <span class="highlight-text">Select question text</span> → <span class="highlight-text">Click 🔍 icon</span> that appears</li>
+            <li><strong>Method 1 (NEW):</strong> <span class="highlight-text">Select question text</span> → <span class="highlight-text">Click 🔍 icon</span> → <span class="highlight-text">Edit prompt & send</span></li>
             <li><strong>Method 2:</strong> <span class="highlight-text">Select question text</span> → <span class="highlight-text">Right-click</span> → <span class="highlight-text">"Solve with AI"</span></li>
             <li><strong>Method 3:</strong> <span class="highlight-text">Select text</span> → <span class="highlight-text">Press Ctrl+Shift+Q</span></li>
         </ul>
-        <p><strong>💡 Tip:</strong> The magnifying glass icon appears above the selected text for quick access!</p>
+        <p><strong>💡 Dialog Features:</strong></p>
+        <ul>
+            <li><strong>📝 Editable Prompt:</strong> Customize what you ask the AI</li>
+            <li><strong>🖱️ Draggable:</strong> Click and drag the header to move the dialog</li>
+            <li><strong>📏 Resizable:</strong> Drag the bottom-right corner to resize</li>
+            <li><strong>➖ Minimizable:</strong> Click the minimize button to collapse</li>
+            <li><strong>🔄 Reset:</strong> Restore the default prompt anytime</li>
+        </ul>
     </div>
 
     <div class="quiz-section">
@@ -211,8 +219,12 @@
         <p><strong>🔧 Troubleshooting:</strong></p>
         <ul>
             <li>If the 🔍 icon doesn't appear, make sure you've selected enough text (5+ characters)</li>
-            <li>If no response comes, check that your Gemini API key is set up correctly</li>
-            <li>The icon disappears when you scroll or click elsewhere - this is normal!</li>
+            <li>If the dialog doesn't open, try clicking the icon again or use right-click method</li>
+            <li>If no AI response comes, check that your Gemini API key is set up correctly in the extension popup</li>
+            <li>If you see "Extension was reloaded" message, simply refresh the page to continue using the extension</li>
+            <li>The dialog is draggable by clicking and dragging the blue header bar</li>
+            <li>You can resize the dialog by dragging the bottom-right corner</li>
+            <li>Use the minimize button (−) to collapse the dialog temporarily</li>
         </ul>
     </div>
 
