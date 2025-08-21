@@ -5,7 +5,7 @@ export default defineContentScript({
   matches: ['<all_urls>'],
   css: ['./style.css'],
   runAt: 'document_end',
-  
+
   main() {
     // MCQ Answer Finder - Smart Quiz Solver
     class SmartQuizSolver {
@@ -354,11 +354,11 @@ export default defineContentScript({
 
         if (selectedText && selectedText.length > 5 && selection.rangeCount > 0) {
           try {
-            this.lastSelection = {
-              text: selectedText,
-              range: selection.getRangeAt(0)
-            };
-            
+          this.lastSelection = {
+            text: selectedText,
+            range: selection.getRangeAt(0)
+          };
+
             // Show magnifying icon near cursor
             this.showMagnifyingIcon(event);
             
@@ -414,7 +414,7 @@ export default defineContentScript({
         if (this.lastSelection && this.lastSelection.text) {
           this.showPromptDialog(this.lastSelection.text);
           this.hideMagnifyingIcon();
-        } else {
+          } else {
           // Just show console message instead of unused showMessage
           console.log('Please select some text first');
         }
@@ -461,7 +461,7 @@ export default defineContentScript({
 
       async callGeminiAPI(questionText, customPrompt, apiKey) {
         const prompt = customPrompt + "\n\nQuestion to analyze:\n" + questionText;
-        
+
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: {

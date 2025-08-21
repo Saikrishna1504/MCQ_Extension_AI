@@ -21,10 +21,14 @@ class QuizSolverPopup {
 
   setupUI() {
     // Get DOM elements
-    this.apiKeyInput = document.getElementById('apiKey');
-    this.saveButton = document.getElementById('saveKey');
-    this.statusDiv = document.getElementById('status');
-    this.testButton = document.getElementById('testKey');
+    this.apiKeyInput = document.getElementById('apiKeyInput');
+    this.saveButton = document.getElementById('saveBtn');
+    this.statusDiv = document.getElementById('statusDesc');
+    this.testButton = document.getElementById('testBtn');
+    this.statusCard = document.getElementById('statusCard');
+    this.statusIcon = document.getElementById('statusIcon');
+    this.statusTitle = document.getElementById('statusTitle');
+    this.apiSetup = document.getElementById('apiSetup');
 
     if (!this.apiKeyInput || !this.saveButton || !this.statusDiv) {
       console.error('❌ Required DOM elements not found');
@@ -50,15 +54,17 @@ class QuizSolverPopup {
         this.apiKeyInput.value = saved.geminiApiKey;
         
         // Test the saved key
-        const isValid = await this.validateApiKey(saved.geminiApiKey);
-        if (isValid) {
-          this.showStatus('✅ API key is valid and ready to use!', 'success');
+        if (await this.validateApiKey(saved.geminiApiKey)) {
+          this.showConnectedState();
         } else {
-          this.showStatus('⚠️ Saved API key appears to be invalid', 'warning');
+          this.showSetupState('⚠️ Saved API key appears to be invalid');
         }
+      } else {
+        this.showSetupState('Please enter your Gemini API key to get started');
       }
     } catch (error) {
       console.error('❌ Failed to load saved API key:', error);
+      this.showSetupState('Error loading settings');
     }
   }
 
@@ -143,23 +149,55 @@ class QuizSolverPopup {
     }
   }
 
+  showConnectedState() {
+    this.statusIcon.textContent = '✅';
+    this.statusTitle.textContent = 'Ready to Use!';
+    this.statusDiv.textContent = 'Your API key is set up and working.';
+    this.statusCard.className = 'status-card success';
+    this.apiSetup.classList.add('hidden');
+  }
+
+  showSetupState(message = 'Please enter your API key') {
+    this.statusIcon.textContent = '🔑';
+    this.statusTitle.textContent = 'Setup Required';
+    this.statusDiv.textContent = message;
+    this.statusCard.className = 'status-card';
+    this.apiSetup.classList.remove('hidden');
+  }
+
   showStatus(message, type = 'info') {
     if (!this.statusDiv) return;
     
     this.statusDiv.textContent = message;
-    this.statusDiv.className = `status ${type}`;
+    
+    // Update icon and styling based on type
+    switch (type) {
+      case 'loading':
+        this.statusIcon.textContent = '⏳';
+        this.statusCard.className = 'status-card loading';
+        break;
+      case 'success':
+        this.statusIcon.textContent = '✅';
+        this.statusCard.className = 'status-card success';
+        break;
+      case 'error':
+        this.statusIcon.textContent = '❌';
+        this.statusCard.className = 'status-card error';
+        break;
+      default:
+        this.statusIcon.textContent = 'ℹ️';
+        this.statusCard.className = 'status-card';
+    }
     
     // Auto-clear status after 5 seconds for success messages
     if (type === 'success') {
-      setTimeout(() => this.clearStatus(), 5000);
+      setTimeout(() => this.loadSavedApiKey(), 3000);
     }
   }
 
   clearStatus() {
-    if (this.statusDiv) {
-      this.statusDiv.textContent = '';
-      this.statusDiv.className = 'status';
-    }
+    // Don't clear status, just refresh the current state
+    this.loadSavedApiKey();
   }
 }
 
