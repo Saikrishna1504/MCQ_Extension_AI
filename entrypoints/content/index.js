@@ -10,18 +10,9 @@ export default defineContentScript({
     // MCQ Answer Finder - Smart Quiz Solver
     class SmartQuizSolver {
       constructor() {
-        this.answerBubble = null;
         this.magnifyingIcon = null;
         this.promptDialog = null;
         this.lastSelection = null;
-        this.isProcessing = false;
-        this.dragState = {
-          isDragging: false,
-          startX: 0,
-          startY: 0,
-          initialX: 0,
-          initialY: 0
-        };
         this.init();
       }
 
@@ -122,17 +113,12 @@ export default defineContentScript({
 
         // Wrap initialization in try-catch
         try {
-          this.createAnswerBubble();
           this.createMagnifyingIcon();
           this.createPromptDialog();
           this.attachEventListeners();
-          console.log('🔍 Smart Quiz Solver loaded successfully!');
           
-          // Welcome message
-          setTimeout(() => {
-            this.showMessage('🎉 Quiz Solver Ready! Highlight text and click the 🔍 icon!', 'success');
-            setTimeout(() => this.hideAnswerBubble(), 3000);
-          }, 1000);
+          // Simple welcome log
+          console.log('Quiz Solver Ready! Highlight text and click the 🔍 icon!');
         } catch (error) {
           console.error('Extension initialization error:', error);
           if (error.message.includes('Extension context') || 
@@ -141,14 +127,6 @@ export default defineContentScript({
             this.showExtensionInvalidMessage();
           }
         }
-      }
-
-      createAnswerBubble() {
-        // Create floating answer bubble
-        this.answerBubble = document.createElement('div');
-        this.answerBubble.id = 'quiz-solver-bubble';
-        this.answerBubble.style.display = 'none';
-        document.body.appendChild(this.answerBubble);
       }
 
       createMagnifyingIcon() {
@@ -203,115 +181,27 @@ export default defineContentScript({
       }
 
       createPromptDialog() {
-        // Create prompt dialog
+        // Create simplified prompt dialog
         this.promptDialog = document.createElement('div');
         this.promptDialog.id = 'quiz-prompt-dialog';
         this.promptDialog.innerHTML = 
           '<div class="prompt-dialog-header">' +
-            '<div class="prompt-dialog-title">' +
-              '<span>🤖 AI Quiz Solver</span>' +
-            '</div>' +
-            '<div class="prompt-dialog-controls">' +
-              '<button class="prompt-control-btn" id="prompt-minimize-btn" title="Minimize">−</button>' +
-              '<button class="prompt-control-btn" id="prompt-close-btn" title="Close">✕</button>' +
-            '</div>' +
+            '<button class="prompt-close-btn" id="prompt-close-btn">×</button>' +
           '</div>' +
-          '<div class="prompt-dialog-content">' +
-            '<div class="prompt-input-section">' +
-              '<label class="prompt-input-label" for="prompt-input">Custom Prompt (Editable):</label>' +
-              '<textarea class="prompt-input" id="prompt-input" placeholder="Enter your custom prompt...">' +
-                'Send me the answer and option number without explanation' +
-              '</textarea>' +
-              '<div class="prompt-actions">' +
-                '<button class="prompt-btn prompt-btn-secondary" id="prompt-reset-btn">Reset Default</button>' +
-                '<button class="prompt-btn prompt-btn-primary" id="prompt-send-btn">🚀 Send to AI</button>' +
-              '</div>' +
-            '</div>' +
-            '<div class="prompt-response-section">' +
-              '<label class="prompt-response-label">🤖 AI Response:</label>' +
-              '<textarea class="prompt-response" id="prompt-response" readonly placeholder="AI response will appear here..."></textarea>' +
-            '</div>' +
-          '</div>' +
-          '<div class="prompt-resize-handle"></div>';
+          '<div class="prompt-answer-content" id="prompt-answer-content">' +
+            'Loading...' +
+          '</div>';
 
         document.body.appendChild(this.promptDialog);
 
-        // Add event listeners for dialog controls
+        // Add event listener for close button
         this.promptDialog.querySelector('#prompt-close-btn').addEventListener('click', () => {
           this.hidePromptDialog();
         });
-
-        this.promptDialog.querySelector('#prompt-minimize-btn').addEventListener('click', () => {
-          this.minimizePromptDialog();
-        });
-
-        this.promptDialog.querySelector('#prompt-reset-btn').addEventListener('click', () => {
-          this.resetPrompt();
-        });
-
-        this.promptDialog.querySelector('#prompt-send-btn').addEventListener('click', () => {
-          this.sendPromptToAI();
-        });
-
-        // Add drag functionality
-        this.setupDragFunctionality();
-      }
-
-      setupDragFunctionality() {
-        const header = this.promptDialog.querySelector('.prompt-dialog-header');
-        
-        header.addEventListener('mousedown', (e) => {
-          if (e.target.closest('.prompt-dialog-controls')) return;
-          
-          this.dragState.isDragging = true;
-          this.dragState.startX = e.clientX;
-          this.dragState.startY = e.clientY;
-          
-          const rect = this.promptDialog.getBoundingClientRect();
-          this.dragState.initialX = rect.left;
-          this.dragState.initialY = rect.top;
-          
-          document.addEventListener('mousemove', this.handleDrag.bind(this));
-          document.addEventListener('mouseup', this.handleDragEnd.bind(this));
-          
-          e.preventDefault();
-        });
-      }
-
-      handleDrag(e) {
-        if (!this.dragState.isDragging) return;
-        
-        const deltaX = e.clientX - this.dragState.startX;
-        const deltaY = e.clientY - this.dragState.startY;
-        
-        // Calculate new position relative to viewport
-        const newX = this.dragState.initialX + deltaX;
-        const newY = this.dragState.initialY + deltaY;
-        
-        // Constrain to viewport
-        const maxX = window.innerWidth - this.promptDialog.offsetWidth;
-        const maxY = window.innerHeight - this.promptDialog.offsetHeight;
-        
-        const constrainedX = Math.max(0, Math.min(maxX, newX));
-        const constrainedY = Math.max(0, Math.min(maxY, newY));
-        
-        // Set position directly without transform
-        this.promptDialog.style.left = constrainedX + 'px';
-        this.promptDialog.style.top = constrainedY + 'px';
-        this.promptDialog.style.transform = 'none';
-      }
-
-      handleDragEnd() {
-        this.dragState.isDragging = false;
-        document.removeEventListener('mousemove', this.handleDrag.bind(this));
-        document.removeEventListener('mouseup', this.handleDragEnd.bind(this));
       }
 
       showPromptDialog(questionText) {
-        // Prevent body scrolling when dialog is open
-        document.body.style.overflow = 'hidden';
-        
-        // Position dialog in center of screen (fixed position)
+        // Position dialog in center of screen
         this.promptDialog.style.display = 'block';
         this.promptDialog.style.position = 'fixed';
         this.promptDialog.style.top = '50%';
@@ -322,85 +212,25 @@ export default defineContentScript({
         // Store question text for later use
         this.currentQuestion = questionText;
         
-        // Clear previous response
-        const responseTextarea = this.promptDialog.querySelector('#prompt-response');
-        responseTextarea.value = '';
-        responseTextarea.className = 'prompt-response';
+        // Show loading state
+        const answerContent = this.promptDialog.querySelector('#prompt-answer-content');
+        answerContent.innerHTML = 
+          '<div class="prompt-loading">' +
+            '<div class="prompt-loading-spinner"></div>' +
+            'Getting answer...' +
+          '</div>';
         
-        // Enable send button
-        const sendBtn = this.promptDialog.querySelector('#prompt-send-btn');
-        sendBtn.disabled = false;
-        sendBtn.textContent = '🚀 Send to AI';
-        
-        // Focus on prompt input
-        const promptInput = this.promptDialog.querySelector('#prompt-input');
-        setTimeout(() => promptInput.focus(), 100);
-        
-        // Automatically send to AI
+        // Automatically get answer
         setTimeout(() => {
-          this.sendPromptToAI();
+          this.getAnswer();
         }, 500);
       }
 
-      hidePromptDialog() {
-        if (this.promptDialog) {
-          this.promptDialog.style.display = 'none';
-          // Restore body scrolling
-          document.body.style.overflow = '';
-        }
-      }
-
-      minimizePromptDialog() {
-        const content = this.promptDialog.querySelector('.prompt-dialog-content');
-        const minimizeBtn = this.promptDialog.querySelector('#prompt-minimize-btn');
-        
-        if (content.style.display === 'none') {
-          // Restore
-          content.style.display = 'flex';
-          minimizeBtn.textContent = '−';
-          minimizeBtn.title = 'Minimize';
-        } else {
-          // Minimize
-          content.style.display = 'none';
-          minimizeBtn.textContent = '+';
-          minimizeBtn.title = 'Restore';
-        }
-      }
-
-      resetPrompt() {
-        const promptInput = this.promptDialog.querySelector('#prompt-input');
-        promptInput.value = 'Send me the answer and option number without explanation';
-      }
-
-      async sendPromptToAI() {
-        if (this.isProcessing) return;
-        
-        const promptInput = this.promptDialog.querySelector('#prompt-input');
-        const responseTextarea = this.promptDialog.querySelector('#prompt-response');
-        const sendBtn = this.promptDialog.querySelector('#prompt-send-btn');
-        
-        const customPrompt = promptInput.value.trim();
-        if (!customPrompt) {
-          responseTextarea.value = 'Please enter a prompt first.';
-          responseTextarea.className = 'prompt-response error';
-          return;
-        }
-        
-        if (!this.currentQuestion) {
-          responseTextarea.value = 'No question text available. Please select text first.';
-          responseTextarea.className = 'prompt-response error';
-          return;
-        }
-        
-        this.isProcessing = true;
-        sendBtn.disabled = true;
-        sendBtn.innerHTML = '<div class="prompt-loading"><div class="prompt-loading-spinner"></div>Sending to AI...</div>';
-        
-        responseTextarea.value = 'Connecting to AI... Please wait...';
-        responseTextarea.className = 'prompt-response loading';
+      async getAnswer() {
+        const answerContent = this.promptDialog.querySelector('#prompt-answer-content');
         
         try {
-          // Get API key with safe browser call
+          // Get API key
           const response = await this.safeBrowserCall(async () => {
             return await Promise.race([
               browser.runtime.sendMessage({ action: 'getApiKey' }),
@@ -411,51 +241,43 @@ export default defineContentScript({
           });
           
           if (!response || !response.apiKey) {
-            responseTextarea.value = '⚠️ Please set up your API key in the extension popup first.\n\nClick the extension icon in your browser toolbar and enter your Gemini API key.';
-            responseTextarea.className = 'prompt-response error';
+            answerContent.innerHTML = 'Please set up your API key in the extension popup first.';
             return;
           }
 
           // Enhance question with context
           const enhancedQuestion = this.enhanceQuestionWithContext(this.currentQuestion);
           
-          // Update status
-          responseTextarea.value = 'Analyzing question with AI...';
+          // Call Gemini API with simple prompt
+          const answer = await this.callGeminiAPI(enhancedQuestion, 'Give me the answer as: Option A: [answer text]. Be concise.', response.apiKey);
           
-          // Call Gemini API with custom prompt
-          const answer = await this.callGeminiAPI(enhancedQuestion, customPrompt, response.apiKey);
-          
-          responseTextarea.value = answer;
-          responseTextarea.className = 'prompt-response success';
+          answerContent.innerHTML = answer;
           
         } catch (error) {
           console.error('❌ AI request error:', error);
           
-          let errorMessage = 'Failed to get response from AI.\n\n';
+          let errorMessage = 'Failed to get answer.';
           
           if (error.message.includes('Extension context invalidated') || 
               error.message.includes('message port closed') ||
               error.message.includes('runtime.lastError') ||
               error.message.includes('context invalidated')) {
-            errorMessage = '🔄 Extension was reloaded. Please refresh this page and try again.';
+            errorMessage = 'Extension was reloaded. Please refresh this page.';
           } else if (error.message.includes('Request timeout')) {
-            errorMessage = '⏰ Request timed out. Please check your internet connection and try again.';
+            errorMessage = 'Request timed out. Please try again.';
           } else if (error.message.includes('401') || error.message.includes('403')) {
-            errorMessage += 'Invalid API key. Please check your Gemini API key in the extension popup.';
+            errorMessage = 'Invalid API key. Please check your setup.';
           } else if (error.message.includes('429')) {
-            errorMessage += 'Rate limit exceeded. Please wait a moment and try again.';
-          } else if (error.message.includes('API request failed')) {
-            errorMessage += 'API request failed. Please check your internet connection and API key.';
-          } else {
-            errorMessage += 'Please try again. Error: ' + error.message;
+            errorMessage = 'Rate limit exceeded. Please try again later.';
           }
           
-          responseTextarea.value = errorMessage;
-          responseTextarea.className = 'prompt-response error';
-        } finally {
-          this.isProcessing = false;
-          sendBtn.disabled = false;
-          sendBtn.textContent = '🚀 Send to AI';
+          answerContent.innerHTML = errorMessage;
+        }
+      }
+
+      hidePromptDialog() {
+        if (this.promptDialog) {
+          this.promptDialog.style.display = 'none';
         }
       }
 
@@ -473,7 +295,6 @@ export default defineContentScript({
         // Hide icon when clicking elsewhere
         document.addEventListener('click', (e) => {
           if (!e.target.closest('#quiz-solver-magnify-icon') && 
-              !e.target.closest('#quiz-solver-bubble') &&
               !e.target.closest('#quiz-prompt-dialog')) {
             this.hideMagnifyingIcon();
           }
@@ -541,14 +362,11 @@ export default defineContentScript({
             // Show magnifying icon near cursor
             this.showMagnifyingIcon(event);
             
-            // Also show selection indicator
-            this.showSelectionIndicator();
           } catch (error) {
             console.error('❌ Error handling selection:', error);
           }
         } else {
           this.hideMagnifyingIcon();
-          this.hideAnswerBubble();
         }
       }
 
@@ -597,38 +415,9 @@ export default defineContentScript({
           this.showPromptDialog(this.lastSelection.text);
           this.hideMagnifyingIcon();
         } else {
-          this.showMessage('❌ Please select some text first', 'error');
+          // Just show console message instead of unused showMessage
+          console.log('Please select some text first');
         }
-      }
-
-      showSelectionIndicator() {
-        // Show a small, unobtrusive indicator near selection
-        if (this.lastSelection && this.lastSelection.range) {
-          const rect = this.lastSelection.range.getBoundingClientRect();
-          
-          this.answerBubble.innerHTML = 
-            '<div class="quiz-bubble-indicator">' +
-              '<div class="quiz-bubble-tip">🔍 Click the magnifying glass to open AI prompt dialog</div>' +
-            '</div>';
-          
-          this.answerBubble.className = 'quiz-bubble quiz-bubble-indicator-mode';
-          this.answerBubble.style.display = 'block';
-          this.answerBubble.style.left = `${rect.left + window.scrollX}px`;
-          this.answerBubble.style.top = `${rect.bottom + window.scrollY + 5}px`;
-
-          // Auto-hide indicator after 5 seconds
-          setTimeout(() => {
-            if (this.answerBubble.className.includes('indicator-mode')) {
-              this.hideAnswerBubble();
-            }
-          }, 5000);
-        }
-      }
-
-      async solveQuestion(questionText) {
-        // This method is now replaced by the prompt dialog
-        // But keeping for backward compatibility
-        this.showPromptDialog(questionText);
       }
 
       enhanceQuestionWithContext(questionText) {
@@ -717,51 +506,6 @@ export default defineContentScript({
         }
       }
 
-      showMessage(message, type = 'info') {
-        this.answerBubble.innerHTML = 
-          '<div class="quiz-bubble-content">' +
-            '<div class="quiz-bubble-close">×</div>' +
-            '<div class="quiz-bubble-message">' + message + '</div>' +
-          '</div>';
-
-        this.answerBubble.className = `quiz-bubble quiz-bubble-${type}`;
-        this.answerBubble.style.display = 'block';
-
-        // Position near last selection or center of screen
-        if (this.lastSelection && this.lastSelection.range) {
-          const rect = this.lastSelection.range.getBoundingClientRect();
-          this.answerBubble.style.left = `${rect.left + window.scrollX}px`;
-          this.answerBubble.style.top = `${rect.bottom + window.scrollY + 10}px`;
-        } else {
-          // Center on screen if no selection
-          this.answerBubble.style.left = '50%';
-          this.answerBubble.style.top = '20%';
-          this.answerBubble.style.transform = 'translateX(-50%)';
-        }
-
-        // Add close functionality
-        const closeBtn = this.answerBubble.querySelector('.quiz-bubble-close');
-        if (closeBtn) {
-          closeBtn.addEventListener('click', () => this.hideAnswerBubble());
-        }
-
-        // Auto-close success messages after 15 seconds
-        if (type === 'success') {
-          setTimeout(() => {
-            if (this.answerBubble.style.display === 'block') {
-              this.hideAnswerBubble();
-            }
-          }, 15000);
-        }
-      }
-
-      hideAnswerBubble() {
-        if (this.answerBubble) {
-          this.answerBubble.style.display = 'none';
-          this.answerBubble.style.transform = '';
-        }
-      }
-
       detectQuizElements() {
         // Auto-detect common quiz platforms and add helpful hints
         const url = window.location.hostname.toLowerCase();
@@ -846,7 +590,6 @@ export default defineContentScript({
         }
 
         quizSolverInstance = new SmartQuizSolver();
-        console.log('🎉 Quiz Solver initialized successfully');
       } catch (error) {
         console.error('❌ Failed to initialize Quiz Solver:', error);
         if (error.message.includes('Extension context') ||
