@@ -21,15 +21,19 @@
     }
     
     .header h1 {
-      font-size: 20px;
+      font-size: 24px;
       margin: 0 0 8px 0;
-      font-weight: 600;
+      font-weight: 800;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      letter-spacing: -0.5px;
     }
     
     .header p {
-      font-size: 14px;
-      opacity: 0.9;
+      font-size: 15px;
+      font-weight: 600;
+      opacity: 0.95;
       margin: 0;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     .status-card {
@@ -47,9 +51,10 @@
     }
     
     .status-title {
-      font-size: 18px;
-      font-weight: 600;
+      font-size: 20px;
+      font-weight: 700;
       margin-bottom: 8px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     .status-desc {
@@ -68,8 +73,10 @@
     
     .api-setup h3 {
       margin: 0 0 12px 0;
-      font-size: 14px;
+      font-size: 16px;
+      font-weight: 700;
       text-align: center;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     .input-group {
@@ -197,6 +204,29 @@
     .help-link:hover {
       color: white;
     }
+
+    .creator-attribution {
+      text-align: center;
+      margin-top: 16px;
+      padding: 8px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.9);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .creator-link {
+      color: rgba(255, 255, 255, 0.9);
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .creator-link:hover {
+      opacity: 0.7;
+    }
+
+    .heart-icon {
+      color: #e25555;
+    }
   </style>
 </head>
 <body>
@@ -216,7 +246,7 @@
       <h3>🔑 Enter Your Gemini API Key</h3>
       <div class="input-group">
         <label for="apiKeyInput">Google Gemini API Key:</label>
-        <input type="password" id="apiKeyInput" placeholder="AIzaSyA..." />
+        <input type="password" id="apiKeyInput" placeholder="AIzaSyA...">
       </div>
       <div class="button-group">
         <button id="testBtn" class="btn btn-secondary">Test</button>
@@ -240,8 +270,12 @@
     <div id="apiInfo" class="api-info hidden">
       <span id="apiKeyDisplay">API Key: ✓ Connected</span>
     </div>
+
+    <div class="creator-attribution">
+      Made by <a href="#" id="creator-link" class="creator-link">@saikrishna</a> <span class="heart-icon">❤️</span>
+    </div>
   </div>
   
   <script src="./popup.js" type="module"></script>
 </body>
-</html> 
+</html>

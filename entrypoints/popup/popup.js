@@ -17,6 +17,17 @@ class QuizSolverPopup {
     } else {
       this.setupUI();
     }
+    this.setupCreatorLink();
+  }
+
+  setupCreatorLink() {
+    const creatorLink = document.getElementById('creator-link');
+    if (creatorLink) {
+      creatorLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await browser.tabs.create({ url: 'https://github.com/saikrishna1504' });
+      });
+    }
   }
 
   setupUI() {
@@ -39,6 +50,10 @@ class QuizSolverPopup {
     this.saveButton.addEventListener('click', () => this.saveApiKey());
     this.testButton?.addEventListener('click', () => this.testApiKey());
     this.apiKeyInput.addEventListener('input', () => this.clearStatus());
+    this.creatorLink?.addEventListener('click', (e) => {
+      e.preventDefault();
+      browser.tabs.create({ url: 'https://github.com/saikrishna1504' });
+    });
 
     // Load saved API key
     this.loadSavedApiKey();
