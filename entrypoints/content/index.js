@@ -278,6 +278,17 @@ export default defineContentScript({
       hidePromptDialog() {
         if (this.promptDialog) {
           this.promptDialog.style.display = 'none';
+          // Reset content when hiding
+          const answerContent = this.promptDialog.querySelector('#prompt-answer-content');
+          if (answerContent) {
+            answerContent.innerHTML = 'Loading...';
+          }
+        }
+      }
+
+      removeWelcomeMessage(welcomeDiv) {
+        if (welcomeDiv && welcomeDiv.parentNode) {
+          welcomeDiv.remove();
         }
       }
 
@@ -297,12 +308,14 @@ export default defineContentScript({
           if (!e.target.closest('#quiz-solver-magnify-icon') && 
               !e.target.closest('#quiz-prompt-dialog')) {
             this.hideMagnifyingIcon();
+            this.hidePromptDialog();
           }
         });
 
-        // Hide icon on scroll
+        // Hide icon and dialog on scroll
         document.addEventListener('scroll', () => {
           this.hideMagnifyingIcon();
+          this.hidePromptDialog();
         });
 
         // Listen for messages from background script
@@ -553,17 +566,24 @@ export default defineContentScript({
         
         document.body.appendChild(welcomeDiv);
 
-        // Auto-remove after 7 seconds
-        setTimeout(() => {
-          if (welcomeDiv.parentNode) {
-            welcomeDiv.remove();
-          }
+        // Store reference to timeout
+        const welcomeTimeout = setTimeout(() => {
+          this.removeWelcomeMessage(welcomeDiv);
         }, 7000);
 
         // Manual close
         welcomeDiv.querySelector('.welcome-close').addEventListener('click', () => {
-          welcomeDiv.remove();
+          clearTimeout(welcomeTimeout);
+          this.removeWelcomeMessage(welcomeDiv);
         });
+
+        // Clean up on scroll
+        const scrollHandler = () => {
+          clearTimeout(welcomeTimeout);
+          this.removeWelcomeMessage(welcomeDiv);
+          window.removeEventListener('scroll', scrollHandler);
+        };
+        window.addEventListener('scroll', scrollHandler);
       }
     }
 
