@@ -2,7 +2,7 @@ import { defineConfig } from 'wxt';
 
 export default defineConfig({
   manifest: {
-    name: 'MCQ Answer Finder',
+    name: 'MCQ Help Buddy',
     version: '2.0.0',
     description: 'Smart AI quiz solver - highlight text, right-click, get instant answers',
     permissions: [
@@ -16,7 +16,7 @@ export default defineConfig({
     ],
     action: {
       default_popup: 'popup/index.html',
-      default_title: 'MCQ Answer Finder'
+      default_title: 'MCQ Help Buddy'
     },
     commands: {
       "solve-question": {

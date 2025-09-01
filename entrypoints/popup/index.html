@@ -207,39 +207,63 @@
 
     .creator-attribution {
       text-align: center;
-      margin-top: 16px;
-      padding: 8px;
-      font-size: 12px;
+      margin-top: 8px;
+      font-size: 13px;
       color: rgba(255, 255, 255, 0.9);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 6px 12px;
+      display: inline-block;
+      backdrop-filter: blur(5px);
+      transition: transform 0.2s ease;
+    }
+
+    .creator-attribution:hover {
+      transform: translateY(-1px);
     }
 
     .creator-link {
-      color: rgba(255, 255, 255, 0.9);
+      color: #fff;
       text-decoration: none;
-      transition: opacity 0.2s;
+      font-weight: 600;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.5);
+      padding-bottom: 1px;
+      transition: all 0.2s ease;
     }
 
     .creator-link:hover {
-      opacity: 0.7;
+      border-bottom-color: #fff;
     }
 
     .heart-icon {
-      color: #e25555;
+      color: #ff4b4b;
+      display: inline-block;
+      animation: heartbeat 1.5s ease infinite;
+    }
+
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      14% { transform: scale(1.1); }
+      28% { transform: scale(1); }
+      42% { transform: scale(1.1); }
+      70% { transform: scale(1); }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>🔍 MCQ Answer Finder</h1>
+      <h1>🔍 MCQ Help Buddy</h1>
       <p>AI-powered question solver</p>
+      <div class="creator-attribution">
+        Made with <span class="heart-icon">❤️</span> by <a href="https://github.com/Saikrishna1504" target="_blank" id="creator-link" class="creator-link">@saikrishna</a>
+      </div>
     </div>
     
     <div id="statusCard" class="status-card loading">
       <div id="statusIcon" class="status-icon">⏳</div>
       <div id="statusTitle" class="status-title">Setting up...</div>
-      <div id="statusDesc" class="status-desc">Initializing MCQ Answer Finder</div>
+      <div id="statusDesc" class="status-desc">Initializing MCQ Help Buddy</div>
     </div>
     
     <div id="apiSetup" class="api-setup hidden">
@@ -269,10 +293,6 @@
     
     <div id="apiInfo" class="api-info hidden">
       <span id="apiKeyDisplay">API Key: ✓ Connected</span>
-    </div>
-
-    <div class="creator-attribution">
-      Made by <a href="#" id="creator-link" class="creator-link">@saikrishna</a> <span class="heart-icon">❤️</span>
     </div>
   </div>
   
