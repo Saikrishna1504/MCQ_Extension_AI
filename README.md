@@ -1,6 +1,14 @@
-# 🔍 Smart Quiz Solver - Chrome Extension
+# 🔍 MCQ Help Buddy - Chrome Extension
 
-A professional Chrome extension that instantly solves multiple-choice questions using Google's Gemini AI. Features a clean, minimal interface inspired by Google's design language.
+A professional Chrome extension powered by Google's Gemini AI that helps you solve multiple-choice questions with detailed explanations. It features a clean, modern interface with a focus on user experience and provides instant AI-powered assistance for your MCQs.
+
+## 🌟 What's New in v2.0.0
+
+- **🎨 Completely Redesigned UI** - Fresh, modern interface with improved usability
+- **⚡ Better Performance** - Faster response times and smoother animations
+- **🛡️ Enhanced Error Handling** - More robust error recovery and user feedback
+- **🔄 Auto-Reload Support** - Content script automatically reloads when needed
+- **💅 Polished Design** - New styling with better accessibility and visual feedback
 
 ## ✨ Features
 
