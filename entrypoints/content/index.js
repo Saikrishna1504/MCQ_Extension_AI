@@ -163,7 +163,7 @@ export default defineContentScript({
           }
           
           if (this.lastSelection && this.lastSelection.text) {
-            this.showPromptDialog(this.lastSelection.text);
+            this.showPromptDialog(this.lastSelection.text, this.lastSelection.images || []);
             this.hideMagnifyingIcon();
           }
         });
@@ -200,7 +200,7 @@ export default defineContentScript({
         });
       }
 
-      showPromptDialog(questionText) {
+      showPromptDialog(questionText, images = []) {
         // Position dialog in center of screen
         this.promptDialog.style.display = 'block';
         this.promptDialog.style.position = 'fixed';
@@ -209,8 +209,9 @@ export default defineContentScript({
         this.promptDialog.style.transform = 'translate(-50%, -50%)';
         this.promptDialog.style.zIndex = '10002';
         
-        // Store question text for later use
+        // Store question info for later use
         this.currentQuestion = questionText;
+        this.currentImages = images;
         
         // Show loading state
         const answerContent = this.promptDialog.querySelector('#prompt-answer-content');
@@ -245,13 +246,46 @@ export default defineContentScript({
             return;
           }
 
-          // Enhance question with context
-          const enhancedQuestion = this.enhanceQuestionWithContext(this.currentQuestion);
+          // Enhance question with context and images
+          let enhancedQuestion = this.enhanceQuestionWithContext(this.currentQuestion);
+          
+          // Add image context if available
+          if (this.currentImages) {
+            const { questionImage, optionImages } = this.currentImages;
+            
+            // Build the question context
+            if (questionImage || optionImages.length > 0) {
+              enhancedQuestion = 'Image-based question:\n';
+              
+              if (questionImage) {
+                enhancedQuestion += `Question Image: ${questionImage}\n\n`;
+              }
+              
+              if (optionImages.length > 0) {
+                enhancedQuestion += 'Options:\n' + 
+                  optionImages.map(img => `${img.option}: ${img.src}`).join('\n') + '\n\n';
+              }
+              
+              if (this.currentQuestion.trim()) {
+                enhancedQuestion += `Additional Text: ${this.currentQuestion}\n`;
+              }
+            }
+          }
           
           // Call Gemini API with simple prompt
-          const answer = await this.callGeminiAPI(enhancedQuestion, 'Give me the answer as: Option A: [answer text]. Be concise.', response.apiKey);
+          let prompt = 'Give the option letter/number followed by the answer text. Format as "A: [answer]" or "1: [answer]". Be extremely concise.';
+          if (this.currentImages?.optionImages?.length > 0) {
+            prompt = 'This is an image-based question. Look at the question image and option images carefully. Give the correct option letter/number followed by a brief description. Format as "A: [brief description]" or "1: [brief description]". Be extremely concise.';
+          }
           
-          answerContent.innerHTML = answer;
+          const answer = await this.callGeminiAPI(enhancedQuestion, prompt, response.apiKey);
+          
+          // Clean up and format the answer
+          const cleanAnswer = answer.replace(/^(Option|Answer|The answer is|It's)\s*:?\s*/i, '')  // Remove prefixes
+                                  .replace(/^\s*([A-D0-9])\s*[:)\.-]\s*(.+)$/i, '$1: $2')  // Format "A: answer" or "1: answer"
+                                  .trim();
+                                  
+          answerContent.innerHTML = cleanAnswer;
           
         } catch (error) {
           console.error('❌ AI request error:', error);
@@ -361,16 +395,70 @@ export default defineContentScript({
         this.detectQuizElements();
       }
 
+      findNearbyImages(range) {
+        const container = range.commonAncestorContainer;
+        const searchArea = container.nodeType === Node.TEXT_NODE ? container.parentElement : container;
+        
+        // Search for images within the container and nearby
+        const images = { questionImage: null, optionImages: [] };
+        const maxDistance = 300; // pixels
+        
+        // Check if an image is near the selection
+        const isImageNearSelection = (img) => {
+          const imgRect = img.getBoundingClientRect();
+          const selectionRect = range.getBoundingClientRect();
+          const verticalDistance = Math.abs(imgRect.top - selectionRect.top);
+          const horizontalDistance = Math.abs(imgRect.left - selectionRect.left);
+          return verticalDistance < maxDistance && horizontalDistance < maxDistance;
+        };
+        
+        // Try to detect if an image is part of options
+        const isOptionImage = (img) => {
+          // Check for numeric or letter markers near the image
+          const nearbyText = img.previousElementSibling?.textContent || 
+                           img.nextElementSibling?.textContent || 
+                           img.parentElement?.textContent || '';
+          return /^[A-D1-4\.\)\s]+$/i.test(nearbyText.trim());
+        };
+        
+        // Find and categorize nearby images
+        const nearbyImgs = searchArea.querySelectorAll('img');
+        nearbyImgs.forEach(img => {
+          if (isImageNearSelection(img)) {
+            // If it's an option image, add to optionImages with its marker
+            if (isOptionImage(img)) {
+              const marker = (img.previousElementSibling?.textContent || 
+                            img.nextElementSibling?.textContent || 
+                            img.parentElement?.textContent || '')
+                            .trim().match(/^[A-D1-4]/i)?.[0] || '';
+              images.optionImages.push({
+                src: img.src,
+                option: marker.toUpperCase()
+              });
+            } else {
+              // If not an option, it's likely the question image
+              images.questionImage = img.src;
+            }
+          }
+        });
+        
+        return images;
+      }
+
       handleTextSelection(event) {
         const selection = window.getSelection();
         const selectedText = selection.toString().trim();
 
         if (selectedText && selectedText.length > 5 && selection.rangeCount > 0) {
           try {
-          this.lastSelection = {
-            text: selectedText,
-            range: selection.getRangeAt(0)
-          };
+            const range = selection.getRangeAt(0);
+            const nearbyImages = this.findNearbyImages(range);
+            
+            this.lastSelection = {
+              text: selectedText,
+              range: range,
+              images: nearbyImages
+            };
 
             // Show magnifying icon near cursor
             this.showMagnifyingIcon(event);
@@ -520,30 +608,8 @@ export default defineContentScript({
       }
 
       detectQuizElements() {
-        // Auto-detect common quiz platforms and add helpful hints
-        const url = window.location.hostname.toLowerCase();
-        const quizPlatforms = [
-          'geeksforgeeks.org',
-          'canvas.',
-          'blackboard.',
-          'moodle.',
-          'coursera.',
-          'edx.',
-          'udemy.',
-          'khan',
-          'quiz',
-          'test',
-          'exam'
-        ];
-
-        const isQuizSite = quizPlatforms.some(platform => url.includes(platform));
-        
-        if (isQuizSite) {
-          // Show a welcome message on quiz sites
-          setTimeout(() => {
-            this.showQuizSiteWelcome();
-          }, 3000);
-        }
+        // This is where quiz-specific element detection logic would go
+        // For now, it's a placeholder for future quiz platform integrations
       }
 
       showQuizSiteWelcome() {
