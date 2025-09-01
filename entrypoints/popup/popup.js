@@ -1,7 +1,6 @@
 import browser from 'webextension-polyfill';
 
-// Smart Quiz Solver - Popup Script
-class QuizSolverPopup {
+class PopupManager {
   constructor() {
     this.apiKeyInput = null;
     this.saveButton = null;
@@ -11,7 +10,6 @@ class QuizSolverPopup {
   }
 
   async init() {
-    // Wait for DOM to be ready
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => this.setupUI());
     } else {
@@ -31,7 +29,6 @@ class QuizSolverPopup {
   }
 
   setupUI() {
-    // Get DOM elements
     this.apiKeyInput = document.getElementById('apiKeyInput');
     this.saveButton = document.getElementById('saveBtn');
     this.statusDiv = document.getElementById('statusDesc');
@@ -46,33 +43,23 @@ class QuizSolverPopup {
       return;
     }
 
-    // Setup event listeners
     this.saveButton.addEventListener('click', () => this.saveApiKey());
     this.testButton?.addEventListener('click', () => this.testApiKey());
     this.apiKeyInput.addEventListener('input', () => this.clearStatus());
-    this.creatorLink?.addEventListener('click', (e) => {
-      e.preventDefault();
-      browser.tabs.create({ url: 'https://github.com/saikrishna1504' });
-    });
 
-    // Load saved API key
     this.loadSavedApiKey();
-
     this.isInitialized = true;
   }
 
   async loadSavedApiKey() {
     try {
-      const saved = await browser.storage.sync.get(['geminiApiKey']);
-      
-      if (saved.geminiApiKey) {
-        this.apiKeyInput.value = saved.geminiApiKey;
-        
-        // Test the saved key
-        if (await this.validateApiKey(saved.geminiApiKey)) {
+      const data = await browser.storage.sync.get(['geminiApiKey']);
+      if (data.geminiApiKey) {
+        this.apiKeyInput.value = data.geminiApiKey;
+        if (await this.validateApiKey(data.geminiApiKey)) {
           this.showConnectedState();
         } else {
-          this.showSetupState('⚠️ Saved API key appears to be invalid');
+          this.showSetupState('⚠️ Please verify your API key');
         }
       } else {
         this.showSetupState('Please enter your Gemini API key to get started');
@@ -91,29 +78,26 @@ class QuizSolverPopup {
       return;
     }
 
-    this.showStatus('🔄 Saving API key...', 'loading');
+    this.showStatus('🔄 Checking API key...', 'loading');
 
     try {
-      // Validate API key first
       const isValid = await this.validateApiKey(apiKey);
       
       if (!isValid) {
-        this.showStatus('❌ Invalid API key. Please check and try again.', 'error');
+        this.showStatus('❌ API key validation failed. Please check the key and try again.', 'error');
         return;
       }
 
-      // Save to storage
       await browser.storage.sync.set({ geminiApiKey: apiKey });
-      this.showStatus('✅ API key saved successfully!', 'success');
+      this.showStatus('✅ API key verified and saved!', 'success');
       
-      // Auto-close popup after 2 seconds
       setTimeout(() => {
         window.close();
-      }, 2000);
+      }, 1500);
       
     } catch (error) {
-      console.error('❌ Failed to save API key:', error);
-      this.showStatus('❌ Failed to save API key', 'error');
+      console.error('❌ API key validation error:', error);
+      this.showStatus('❌ Connection error. Please check your internet connection.', 'error');
     }
   }
 
@@ -125,41 +109,31 @@ class QuizSolverPopup {
       return;
     }
 
-    this.showStatus('🧪 Testing API key...', 'loading');
+    this.showStatus('🔄 Testing connection...', 'loading');
 
     try {
       const isValid = await this.validateApiKey(apiKey);
-      
       if (isValid) {
-        this.showStatus('✅ API key is valid!', 'success');
+        this.showStatus('✅ Connection successful!', 'success');
       } else {
-        this.showStatus('❌ API key is invalid', 'error');
+        this.showStatus('❌ Connection failed. Please check your API key.', 'error');
       }
     } catch (error) {
-      console.error('❌ API key test failed:', error);
-      this.showStatus('❌ Failed to test API key', 'error');
+      console.error('❌ Connection test failed:', error);
+      this.showStatus('❌ Connection error. Please check your internet connection.', 'error');
     }
   }
 
   async validateApiKey(apiKey) {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: 'Hello'
-            }]
-          }]
-        })
-      });
-
-      return response.status !== 401 && response.status !== 403;
+      const url = `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`;
+      
+      const response = await fetch(url);
+      console.log('API Response:', response.status, response.statusText);
+      
+      return response.status === 200;
     } catch (error) {
-      console.error('❌ API validation error:', error);
+      console.error('API validation error:', error);
       return false;
     }
   }
@@ -182,10 +156,9 @@ class QuizSolverPopup {
 
   showStatus(message, type = 'info') {
     if (!this.statusDiv) return;
-    
+
     this.statusDiv.textContent = message;
     
-    // Update icon and styling based on type
     switch (type) {
       case 'loading':
         this.statusIcon.textContent = '⏳';
@@ -203,19 +176,12 @@ class QuizSolverPopup {
         this.statusIcon.textContent = 'ℹ️';
         this.statusCard.className = 'status-card';
     }
-    
-    // Auto-clear status after 5 seconds for success messages
-    if (type === 'success') {
-      setTimeout(() => this.loadSavedApiKey(), 3000);
-    }
   }
 
   clearStatus() {
-    // Don't clear status, just refresh the current state
     this.loadSavedApiKey();
   }
 }
 
-// Initialize popup when script loads
-const popup = new QuizSolverPopup();
-popup.init(); 
+const popup = new PopupManager();
+popup.init();
