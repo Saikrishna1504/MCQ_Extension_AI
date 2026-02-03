@@ -42,15 +42,104 @@ class PopupManager {
 
   setupHelpLink() {
     const helpLink = document.getElementById('helpLink');
-    if (helpLink) {
-      helpLink.addEventListener('click', async (e) => {
+    const helpModal = document.getElementById('helpModal');
+    const helpModalClose = document.getElementById('helpModalClose');
+    const helpContent = document.getElementById('helpContent');
+
+    if (helpLink && helpModal && helpContent) {
+      helpLink.addEventListener('click', (e) => {
         e.preventDefault();
-        const provider = this.providerSelect?.value || CONFIG.PROVIDERS.GEMINI;
+        this.showHelpModal();
+      });
+
+      if (helpModalClose) {
+        helpModalClose.addEventListener('click', () => {
+          this.hideHelpModal();
+        });
+      }
+
+      helpModal.addEventListener('click', (e) => {
+        if (e.target === helpModal) {
+          this.hideHelpModal();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && helpModal.classList.contains('active')) {
+          this.hideHelpModal();
+        }
+      });
+    }
+  }
+
+  showHelpModal() {
+    const helpModal = document.getElementById('helpModal');
+    const helpContent = document.getElementById('helpContent');
+    const provider = this.providerSelect?.value || CONFIG.PROVIDERS.GEMINI;
+
+    if (!helpModal || !helpContent) return;
+
+    if (provider === CONFIG.PROVIDERS.CHATGPT) {
+      helpContent.innerHTML = `
+        <div class="help-steps">
+          <h4>🤖 OpenAI ChatGPT API Key</h4>
+          <ol>
+            <li>Visit <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a></li>
+            <li>Sign in or create a free account</li>
+            <li>Click <strong>"Create new secret key"</strong></li>
+            <li>Copy the API key (starts with <code>sk-</code>)</li>
+            <li>Paste it in the input field above</li>
+            <li>Click <strong>"Test"</strong> to verify, then <strong>"Save"</strong></li>
+          </ol>
+          <div style="margin-top: 12px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; font-size: 11px;">
+            <strong>💡 Note:</strong> Free tier includes $5 credit. API keys are free to create.<br>
+            <strong>⚠️ Rate Limits:</strong> New keys may have rate limits. Wait 1-2 minutes after creating the key before testing.
+          </div>
+        </div>
+        <div class="help-direct-link">
+          <button class="btn btn-primary" id="openChatGPTLink">Open OpenAI Platform →</button>
+        </div>
+      `;
+    } else {
+      helpContent.innerHTML = `
+        <div class="help-steps">
+          <h4>🤖 Google Gemini API Key</h4>
+          <ol>
+            <li>Visit <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></li>
+            <li>Sign in with your Google account</li>
+            <li>Click <strong>"Create API Key"</strong></li>
+            <li>Select or create a Google Cloud project</li>
+            <li>Copy the API key (starts with <code>AIza</code>)</li>
+            <li>Paste it in the input field above</li>
+            <li>Click <strong>"Test"</strong> to verify, then <strong>"Save"</strong></li>
+          </ol>
+          <div style="margin-top: 12px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; font-size: 11px;">
+            <strong>💡 Note:</strong> Free tier includes 60 requests per minute. No credit card required for basic usage.
+          </div>
+        </div>
+        <div class="help-direct-link">
+          <button class="btn btn-primary" id="openGeminiLink">Open Google AI Studio →</button>
+        </div>
+      `;
+    }
+
+    helpModal.classList.add('active');
+
+    const directLinkBtn = document.getElementById(provider === CONFIG.PROVIDERS.CHATGPT ? 'openChatGPTLink' : 'openGeminiLink');
+    if (directLinkBtn) {
+      directLinkBtn.addEventListener('click', async () => {
         const url = provider === CONFIG.PROVIDERS.CHATGPT
           ? 'https://platform.openai.com/api-keys'
           : 'https://makersuite.google.com/app/apikey';
         await browser.tabs.create({ url });
       });
+    }
+  }
+
+  hideHelpModal() {
+    const helpModal = document.getElementById('helpModal');
+    if (helpModal) {
+      helpModal.classList.remove('active');
     }
   }
 
@@ -82,6 +171,11 @@ class PopupManager {
     this.changeApiBtn?.addEventListener('click', () => this.showChangeApiKey());
     this.removeApiBtn?.addEventListener('click', () => this.removeApiKey());
     
+    const skipValidationLink = document.getElementById('skipValidationLink');
+    if (skipValidationLink) {
+      skipValidationLink.addEventListener('click', () => this.saveApiKeyWithoutValidation());
+    }
+    
     this.apiKeyInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !this.isLoading) {
         e.preventDefault();
@@ -103,6 +197,11 @@ class PopupManager {
         this.apiKeyLabel.textContent = 'Google Gemini API Key:';
         this.apiKeyInput.placeholder = 'AIzaSyA...';
       }
+    }
+    
+    const helpModal = document.getElementById('helpModal');
+    if (helpModal && helpModal.classList.contains('active')) {
+      this.showHelpModal();
     }
   }
 
@@ -152,7 +251,7 @@ class PopupManager {
     }
   }
 
-  async saveApiKey() {
+  async saveApiKey(skipValidation = false) {
     if (this.isLoading) return;
     
     const apiKey = this.apiKeyInput.value.trim();
@@ -163,29 +262,44 @@ class PopupManager {
       return;
     }
 
+    if (provider === CONFIG.PROVIDERS.CHATGPT && !apiKey.startsWith('sk-')) {
+      this.showStatus('❌ Invalid ChatGPT API key format. Should start with "sk-"', 'error');
+      return;
+    }
+
+    if (provider === CONFIG.PROVIDERS.GEMINI && !apiKey.startsWith('AIza')) {
+      this.showStatus('❌ Invalid Gemini API key format. Should start with "AIza"', 'error');
+      return;
+    }
+
     this.isLoading = true;
-    this.showStatus('🔄 Checking API key...', 'loading');
+    this.showStatus(skipValidation ? '💾 Saving API key...' : '🔄 Checking API key...', 'loading');
     this.saveButton.disabled = true;
     this.testButton.disabled = true;
     this.enableInput();
 
     try {
-      const isValid = await this.validateApiKey(apiKey, provider);
-      
-      if (!isValid) {
-        this.showStatus('❌ API key validation failed. Please check the key and try again.', 'error');
-        this.saveButton.disabled = false;
-        this.testButton.disabled = false;
-        this.isLoading = false;
-        this.enableInput();
-        return;
+      if (!skipValidation) {
+        const isValid = await this.validateApiKey(apiKey, provider);
+        
+        if (!isValid) {
+          const errorMsg = provider === CONFIG.PROVIDERS.CHATGPT
+            ? '❌ Validation failed. If you just created the key, try "Skip validation & save directly" below, or wait 1-2 minutes and test again.'
+            : '❌ API key validation failed. Please check the key and try again.';
+          this.showStatus(errorMsg, 'error');
+          this.saveButton.disabled = false;
+          this.testButton.disabled = false;
+          this.isLoading = false;
+          this.enableInput();
+          return;
+        }
       }
 
       await browser.storage.sync.set({ 
         [CONFIG.STORAGE.API_KEY]: apiKey,
         [CONFIG.STORAGE.PROVIDER]: provider
       });
-      this.showStatus('✅ API key verified and saved!', 'success');
+      this.showStatus(skipValidation ? '✅ API key saved! (Validation skipped)' : '✅ API key verified and saved!', 'success');
       
       setTimeout(() => {
         this.showConnectedState();
@@ -204,6 +318,10 @@ class PopupManager {
       this.isLoading = false;
       this.enableInput();
     }
+  }
+
+  async saveApiKeyWithoutValidation() {
+    await this.saveApiKey(true);
   }
 
   async testApiKey() {
@@ -228,7 +346,11 @@ class PopupManager {
       if (isValid) {
         this.showStatus('✅ Connection successful!', 'success');
       } else {
-        this.showStatus('❌ Connection failed. Please check your API key.', 'error');
+        const provider = this.providerSelect.value;
+        const errorMsg = provider === CONFIG.PROVIDERS.CHATGPT
+          ? '❌ Connection failed. If you just created the key, wait a minute. Also check: 1) Key starts with "sk-", 2) You have credits in OpenAI account, 3) Try again in a moment.'
+          : '❌ Connection failed. Please check your API key.';
+        this.showStatus(errorMsg, 'error');
       }
     } catch (error) {
       console.error('❌ Connection test failed:', error);
@@ -243,25 +365,59 @@ class PopupManager {
 
   async validateApiKey(apiKey, provider) {
     try {
-      let url;
-      let options = {
-        method: 'GET',
-        signal: AbortSignal.timeout(CONFIG.API.TIMEOUT),
-      };
-
       if (provider === CONFIG.PROVIDERS.CHATGPT) {
-        url = `${CONFIG.API.CHATGPT.BASE_URL}/v1/models`;
-        options.headers = {
-          'Authorization': `Bearer ${apiKey}`,
-        };
+        if (!apiKey.startsWith('sk-')) {
+          return false;
+        }
+        
+        try {
+          const url = `${CONFIG.API.CHATGPT.BASE_URL}/v1/chat/completions`;
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              model: CONFIG.API.CHATGPT.MODEL,
+              messages: [{ role: 'user', content: 'test' }],
+              max_tokens: 5,
+            }),
+            signal: AbortSignal.timeout(10000),
+          });
+          
+          if (response.status === 401 || response.status === 403) {
+            return false;
+          }
+          
+          if (response.status === 429) {
+            return true;
+          }
+          
+          if (response.status === 402) {
+            return false;
+          }
+          
+          return response.ok;
+        } catch (error) {
+          if (error.message.includes('429') || error.message.includes('rate limit')) {
+            return true;
+          }
+          return false;
+        }
       } else {
-        url = `${CONFIG.API.GEMINI.BASE_URL}/v1/models?key=${apiKey}`;
+        const url = `${CONFIG.API.GEMINI.BASE_URL}/v1/models?key=${apiKey}`;
+        const response = await fetch(url, {
+          method: 'GET',
+          signal: AbortSignal.timeout(CONFIG.API.TIMEOUT),
+        });
+        return response.status === 200;
       }
-      
-      const response = await fetch(url, options);
-      return response.status === 200;
     } catch (error) {
       console.error('API validation error:', error);
+      if (error.message.includes('429') || error.message.includes('rate limit')) {
+        return true;
+      }
       return false;
     }
   }

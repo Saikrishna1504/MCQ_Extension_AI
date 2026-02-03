@@ -78,18 +78,32 @@ async function callChatGPTAPI(questionText, customPrompt, apiKey, images = null)
         temperature: CONFIG.GENERATION.CHATGPT.temperature,
         max_tokens: CONFIG.GENERATION.CHATGPT.max_tokens,
       }),
+      signal: AbortSignal.timeout(CONFIG.API.TIMEOUT),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ API Error Response:', errorText);
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        const errorText = await response.text();
+        errorData = { error: { message: errorText } };
+      }
+      const errorMessage = errorData?.error?.message || errorData?.error?.code || 'Unknown error';
+      console.error('❌ API Error Response:', errorMessage);
       
       if (response.status === 401 || response.status === 403) {
         throw new Error(`API authentication failed (${response.status}). Please check your API key.`);
       } else if (response.status === 429) {
-        throw new Error(`Rate limit exceeded (${response.status}). Please try again later.`);
+        const retryAfter = response.headers.get('retry-after');
+        const message = retryAfter 
+          ? `Rate limit exceeded. Please wait ${retryAfter} seconds and try again.`
+          : `Rate limit exceeded. Please try again in a few minutes.`;
+        throw new Error(message);
+      } else if (response.status === 402 || response.status === 500) {
+        throw new Error(`API error: ${errorMessage}. Please check your OpenAI account billing and credits.`);
       } else {
-        throw new Error(`API request failed: ${response.status} - ${errorText}`);
+        throw new Error(`API request failed: ${response.status} - ${errorMessage}`);
       }
     }
 
@@ -103,6 +117,9 @@ async function callChatGPTAPI(questionText, customPrompt, apiKey, images = null)
     }
   } catch (error) {
     console.error('❌ API call error:', error);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out. Please try again.');
+    }
     throw new Error(formatApiError(error));
   }
 }

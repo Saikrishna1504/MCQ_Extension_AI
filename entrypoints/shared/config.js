@@ -12,7 +12,7 @@ export const CONFIG = {
     },
     CHATGPT: {
       BASE_URL: 'https://api.openai.com',
-      MODEL: 'gpt-3.5-turbo',
+      MODEL: 'gpt-4o-mini',
       ENDPOINT: 'v1/chat/completions',
     },
     TIMEOUT: 30000,
