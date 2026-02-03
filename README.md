@@ -2,13 +2,15 @@
 
 A professional Chrome extension powered by Google's Gemini AI that helps you solve multiple-choice questions with detailed explanations. It features a clean, modern interface with a focus on user experience and provides instant AI-powered assistance for your MCQs.
 
-## 🌟 What's New in v2.0.0
+## 🌟 Features
 
-- **🎨 Completely Redesigned UI** - Fresh, modern interface with improved usability
-- **⚡ Better Performance** - Faster response times and smoother animations
-- **🛡️ Enhanced Error Handling** - More robust error recovery and user feedback
-- **🔄 Auto-Reload Support** - Content script automatically reloads when needed
-- **💅 Polished Design** - New styling with better accessibility and visual feedback
+- **🎯 MCQ-Optimized** - Specifically designed for multiple-choice questions
+- **⚡ Instant Answers** - Get AI-powered solutions in seconds
+- **🎨 Modern UI** - Clean, accessible interface with smooth animations
+- **🔑 API Key Management** - Easy setup and management of your API key
+- **⌨️ Keyboard Shortcuts** - Quick access with Ctrl+Shift+Q
+- **🔄 Auto-Reload Support** - Handles extension updates gracefully
+- **🛡️ Robust Error Handling** - Clear error messages and recovery
 
 ## 🚀 Installation
 
@@ -32,17 +34,27 @@ A professional Chrome extension powered by Google's Gemini AI that helps you sol
 
 ## 📖 Usage
 
-### **Method 1: Clean Dialog Interface (Recommended)**
+### **Method 1: Magnifying Glass Icon (Recommended)**
 1. **Select question text** on any webpage
-2. **Click the 🔍 magnifying glass** icon that appears
+2. **Click the 🔍 magnifying glass** icon that appears above the selection
 3. **Dialog opens automatically** and sends to AI
 4. **View the answer** in the response section
-5. **Drag/resize** dialog as needed
 
-### **Method 2: Right-Click Menu**
+### **Method 2: Keyboard Shortcut**
 1. **Select question text**
-2. **Right-click** → "Solve with AI 🔍"
-3. **Clean dialog opens** with auto-send functionality
+2. Press **Ctrl+Shift+Q** (or **Command+Shift+Q** on Mac)
+3. **Dialog opens** with auto-send functionality
+
+## 🔑 API Key Management
+
+The extension popup provides full API key management:
+
+- **Save API Key** - Enter and save your Gemini API key
+- **Test Connection** - Verify your API key before saving
+- **Change API Key** - Update your API key anytime
+- **Remove API Key** - Clear your stored API key
+
+No need to reinstall the extension to change your API key!
 
 ## 🛠️ Development
 
@@ -54,17 +66,18 @@ npm run dev
 # Production build
 npm run build
 
-# Type checking
-npm run type-check
+# Build for Firefox
+npm run build:firefox
 ```
 
 ### **Project Structure**
 ```
 ├── entrypoints/
-│   ├── background/         # Background script
-│   ├── content/           # Content script & styles
-│   └── popup/             # Extension popup
-├── public/                # Static assets
+│   ├── background/         # Background script (keyboard shortcuts, API access)
+│   ├── content/           # Content script & styles (main functionality)
+│   ├── popup/             # Extension popup (API key management)
+│   └── shared/            # Shared modules (config, utils, API, UI)
+├── public/                # Static assets (icons)
 └── .output/chrome-mv3/    # Built extension
 ```
 
@@ -80,7 +93,7 @@ npm run type-check
 ### **AI Model**
 - **Google Gemini 2.0 Flash** - Latest high-performance model
 - **Optimized prompting** for multiple-choice questions
-- **Context-aware** question enhancement
+- **Context-aware** question enhancement with automatic option detection
 
 ## 🎯 Version: 2.0.0
 
@@ -88,4 +101,4 @@ npm run type-check
 
 ---
 
-**Note**: This extension requires a valid Google Gemini API key to function. Get yours free at [Google AI Studio](https://makersuite.google.com/app/apikey). 
+**Note**: This extension requires a valid Google Gemini API key to function. Get yours free at [Google AI Studio](https://makersuite.google.com/app/apikey).

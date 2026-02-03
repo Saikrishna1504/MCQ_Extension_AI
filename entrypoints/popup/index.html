@@ -99,6 +99,22 @@
       background: rgba(255, 255, 255, 0.9);
       color: #333;
       box-sizing: border-box;
+      pointer-events: auto !important;
+      user-select: text !important;
+      -webkit-user-select: text !important;
+    }
+
+    .input-group input:disabled,
+    .input-group input[readonly] {
+      background: rgba(255, 255, 255, 0.5);
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .input-group input:focus {
+      outline: 2px solid rgba(255, 255, 255, 0.5);
+      outline-offset: 2px;
+      background: rgba(255, 255, 255, 1);
     }
     
     .button-group {
@@ -135,10 +151,26 @@
     .btn-secondary:hover {
       background: rgba(255, 255, 255, 0.3);
     }
+
+    .btn-danger {
+      background: rgba(220, 53, 69, 0.8);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: rgba(220, 53, 69, 1);
+    }
     
     .btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+    }
+
+    .api-management {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
     }
     
     .usage-steps {
@@ -265,12 +297,27 @@
       <div id="statusTitle" class="status-title">Setting up...</div>
       <div id="statusDesc" class="status-desc">Initializing MCQ Help Buddy</div>
     </div>
+
+    <!-- API Key Management Section (shown when connected) -->
+    <div id="apiManagement" class="api-management hidden">
+      <div class="button-group" style="margin-top: 12px;">
+        <button id="changeApiBtn" class="btn btn-secondary">Change API Key</button>
+        <button id="removeApiBtn" class="btn btn-danger">Remove API Key</button>
+      </div>
+    </div>
     
     <div id="apiSetup" class="api-setup hidden">
-      <h3>🔑 Enter Your Gemini API Key</h3>
+      <h3>🔑 Configure AI Provider</h3>
       <div class="input-group">
-        <label for="apiKeyInput">Google Gemini API Key:</label>
-        <input type="password" id="apiKeyInput" placeholder="AIzaSyA...">
+        <label for="providerSelect">AI Provider:</label>
+        <select id="providerSelect" style="width: 100%; padding: 8px; border: none; border-radius: 4px; font-size: 12px; background: rgba(255, 255, 255, 0.9); color: #333; box-sizing: border-box;">
+          <option value="gemini">Google Gemini</option>
+          <option value="chatgpt">OpenAI ChatGPT</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label for="apiKeyInput" id="apiKeyLabel">API Key:</label>
+        <input type="password" id="apiKeyInput" placeholder="Enter API key..." autocomplete="off" spellcheck="false">
       </div>
       <div class="button-group">
         <button id="testBtn" class="btn btn-secondary">Test</button>

@@ -4,15 +4,15 @@ export default defineConfig({
   manifest: {
     name: 'MCQ Help Buddy',
     version: '2.0.0',
-    description: 'Smart AI quiz solver - highlight text, right-click, get instant answers',
+    description: 'Smart AI quiz solver - highlight text and get instant answers',
     permissions: [
       'activeTab',
       'storage',
-      'contextMenus',
       'scripting'
     ],
     host_permissions: [
-      "https://generativelanguage.googleapis.com/*"
+      "https://generativelanguage.googleapis.com/*",
+      "https://api.openai.com/*"
     ],
     action: {
       default_popup: 'popup/index.html',
