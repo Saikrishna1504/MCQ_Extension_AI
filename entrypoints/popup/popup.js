@@ -16,6 +16,7 @@ class PopupManager {
     this.apiManagement = null;
     this.changeApiBtn = null;
     this.removeApiBtn = null;
+    this.fullPageToggle = null;
     this.isInitialized = false;
     this.isLoading = false;
   }
@@ -157,6 +158,7 @@ class PopupManager {
     this.apiManagement = document.getElementById('apiManagement');
     this.changeApiBtn = document.getElementById('changeApiBtn');
     this.removeApiBtn = document.getElementById('removeApiBtn');
+    this.fullPageToggle = document.getElementById('fullPageToggle');
 
     if (!this.apiKeyInput || !this.saveButton || !this.statusDiv || !this.providerSelect) {
       console.error('❌ Required DOM elements not found');
@@ -170,6 +172,7 @@ class PopupManager {
     this.testButton?.addEventListener('click', () => this.testApiKey());
     this.changeApiBtn?.addEventListener('click', () => this.showChangeApiKey());
     this.removeApiBtn?.addEventListener('click', () => this.removeApiKey());
+    this.fullPageToggle?.addEventListener('change', () => this.saveFullPageToggle());
     
     const skipValidationLink = document.getElementById('skipValidationLink');
     if (skipValidationLink) {
@@ -184,6 +187,7 @@ class PopupManager {
     });
 
     this.loadSavedApiKey();
+    this.loadFullPageToggle();
     this.isInitialized = true;
   }
 
@@ -262,14 +266,18 @@ class PopupManager {
       return;
     }
 
-    if (provider === CONFIG.PROVIDERS.CHATGPT && !apiKey.startsWith('sk-')) {
-      this.showStatus('❌ Invalid ChatGPT API key format. Should start with "sk-"', 'error');
-      return;
-    }
+    const isUrl = /^https?:\/\//i.test(apiKey) || /^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}/.test(apiKey);
+    
+    if (!isUrl) {
+      if (provider === CONFIG.PROVIDERS.CHATGPT && !apiKey.startsWith('sk-')) {
+        this.showStatus('❌ Invalid ChatGPT API key format. Should start with "sk-"', 'error');
+        return;
+      }
 
-    if (provider === CONFIG.PROVIDERS.GEMINI && !apiKey.startsWith('AIza')) {
-      this.showStatus('❌ Invalid Gemini API key format. Should start with "AIza"', 'error');
-      return;
+      if (provider === CONFIG.PROVIDERS.GEMINI && !apiKey.startsWith('AIza')) {
+        this.showStatus('❌ Invalid Gemini API key format. Should start with "AIza"', 'error');
+        return;
+      }
     }
 
     this.isLoading = true;
@@ -283,9 +291,15 @@ class PopupManager {
         const isValid = await this.validateApiKey(apiKey, provider);
         
         if (!isValid) {
-          const errorMsg = provider === CONFIG.PROVIDERS.CHATGPT
-            ? '❌ Validation failed. If you just created the key, try "Skip validation & save directly" below, or wait 1-2 minutes and test again.'
-            : '❌ API key validation failed. Please check the key and try again.';
+          const isUrl = /^https?:\/\//i.test(apiKey);
+          let errorMsg;
+          if (isUrl) {
+            errorMsg = '❌ Validation failed. Custom endpoints may have CORS restrictions. Try "Skip validation & save directly" below - the endpoint will work if it accepts OpenAI-compatible requests.';
+          } else {
+            errorMsg = provider === CONFIG.PROVIDERS.CHATGPT
+              ? '❌ Validation failed. If you just created the key, try "Skip validation & save directly" below, or wait 1-2 minutes and test again.'
+              : '❌ API key validation failed. Please check the key and try again.';
+          }
           this.showStatus(errorMsg, 'error');
           this.saveButton.disabled = false;
           this.testButton.disabled = false;
@@ -342,15 +356,20 @@ class PopupManager {
     this.enableInput();
 
     try {
+      const isUrl = /^https?:\/\//i.test(apiKey);
       const isValid = await this.validateApiKey(apiKey, provider);
       if (isValid) {
         this.showStatus('✅ Connection successful!', 'success');
       } else {
-        const provider = this.providerSelect.value;
-        const errorMsg = provider === CONFIG.PROVIDERS.CHATGPT
-          ? '❌ Connection failed. If you just created the key, wait a minute. Also check: 1) Key starts with "sk-", 2) You have credits in OpenAI account, 3) Try again in a moment.'
-          : '❌ Connection failed. Please check your API key.';
-        this.showStatus(errorMsg, 'error');
+        if (isUrl) {
+          this.showStatus('❌ Connection failed. Please check: 1) Endpoint URL is correct, 2) Endpoint accepts OpenAI-compatible requests, 3) CORS is enabled, 4) Try "Skip validation & save directly" if endpoint is working.', 'error');
+        } else {
+          const provider = this.providerSelect.value;
+          const errorMsg = provider === CONFIG.PROVIDERS.CHATGPT
+            ? '❌ Connection failed. If you just created the key, wait a minute. Also check: 1) Key starts with "sk-", 2) You have credits in OpenAI account, 3) Try again in a moment.'
+            : '❌ Connection failed. Please check your API key.';
+          this.showStatus(errorMsg, 'error');
+        }
       }
     } catch (error) {
       console.error('❌ Connection test failed:', error);
@@ -365,6 +384,71 @@ class PopupManager {
 
   async validateApiKey(apiKey, provider) {
     try {
+      const isUrl = /^https?:\/\//i.test(apiKey) || /^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}/.test(apiKey.trim());
+      
+      if (isUrl) {
+        let endpointUrl = apiKey.trim();
+        
+        if (!endpointUrl.startsWith('http://') && !endpointUrl.startsWith('https://')) {
+          endpointUrl = 'https://' + endpointUrl;
+        }
+        
+        if (!endpointUrl.includes('/v1/') && !endpointUrl.includes('/chat') && !endpointUrl.includes('/completions')) {
+          if (!endpointUrl.endsWith('/')) {
+            endpointUrl += '/';
+          }
+          endpointUrl += 'v1/chat/completions';
+        }
+        
+        try {
+          const response = await fetch(endpointUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: CONFIG.API.CHATGPT.MODEL,
+              messages: [{ role: 'user', content: 'test' }],
+              max_tokens: 5,
+            }),
+            signal: AbortSignal.timeout(10000),
+          });
+          
+          console.log('Custom endpoint test response:', response.status, response.statusText);
+          
+          if (response.status === 401 || response.status === 403) {
+            console.log('Custom endpoint returned auth error, but endpoint is reachable');
+            return true;
+          }
+          
+          if (response.status === 429) {
+            return true;
+          }
+          
+          if (response.status >= 400 && response.status < 500) {
+            const errorText = await response.text().catch(() => '');
+            console.log('Custom endpoint error response:', response.status, errorText.substring(0, 100));
+            return true;
+          }
+          
+          return response.ok || response.status < 500;
+        } catch (error) {
+          console.error('Custom endpoint validation error:', error.message);
+          if (error.message.includes('429') || error.message.includes('rate limit')) {
+            return true;
+          }
+          if (error.message.includes('CORS') || error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            console.log('Network/CORS error - endpoint may still be valid (extension can bypass CORS)');
+            return true;
+          }
+          if (error.name === 'AbortError' || error.message.includes('timeout')) {
+            console.log('Timeout error - endpoint may still be valid');
+            return true;
+          }
+          return false;
+        }
+      }
+      
       if (provider === CONFIG.PROVIDERS.CHATGPT) {
         if (!apiKey.startsWith('sk-')) {
           return false;
@@ -510,6 +594,26 @@ class PopupManager {
     } catch (error) {
       console.error('❌ Failed to remove API key:', error);
       this.showStatus('❌ Failed to remove API key. Please try again.', 'error');
+    }
+  }
+
+  async loadFullPageToggle() {
+    try {
+      const data = await browser.storage.sync.get([CONFIG.STORAGE.FULL_PAGE_SELECTION]);
+      if (this.fullPageToggle) {
+        this.fullPageToggle.checked = data[CONFIG.STORAGE.FULL_PAGE_SELECTION] || false;
+      }
+    } catch (error) {
+      console.error('❌ Failed to load full page toggle:', error);
+    }
+  }
+
+  async saveFullPageToggle() {
+    try {
+      const isEnabled = this.fullPageToggle?.checked || false;
+      await browser.storage.sync.set({ [CONFIG.STORAGE.FULL_PAGE_SELECTION]: isEnabled });
+    } catch (error) {
+      console.error('❌ Failed to save full page toggle:', error);
     }
   }
 

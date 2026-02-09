@@ -1,19 +1,22 @@
 import { CONFIG } from './config.js';
-import { formatApiError } from './utils.js';
+import { formatApiError, isCustomEndpoint, normalizeEndpointUrl } from './utils.js';
 
-export async function callAIAPI(questionText, customPrompt, apiKey, provider, images = null) {
-  if (provider === CONFIG.PROVIDERS.GEMINI) {
-    return await callGeminiAPI(questionText, customPrompt, apiKey, images);
+export async function callAIAPI(questionText, customPrompt, apiKey, provider, images = null, isCodingMode = false) {
+  if (isCustomEndpoint(apiKey)) {
+    return await callCustomEndpointAPI(questionText, customPrompt, apiKey, images, isCodingMode);
+  } else if (provider === CONFIG.PROVIDERS.GEMINI) {
+    return await callGeminiAPI(questionText, customPrompt, apiKey, images, isCodingMode);
   } else if (provider === CONFIG.PROVIDERS.CHATGPT) {
-    return await callChatGPTAPI(questionText, customPrompt, apiKey, images);
+    return await callChatGPTAPI(questionText, customPrompt, apiKey, images, isCodingMode);
   } else {
     throw new Error('Unknown AI provider');
   }
 }
 
-async function callGeminiAPI(questionText, customPrompt, apiKey, images = null) {
+async function callGeminiAPI(questionText, customPrompt, apiKey, images = null, isCodingMode = false) {
   const prompt = buildPrompt(questionText, customPrompt, images);
   const url = `${CONFIG.API.GEMINI.BASE_URL}/${CONFIG.API.GEMINI.ENDPOINT}/${CONFIG.API.GEMINI.MODEL}:generateContent?key=${apiKey}`;
+  const generationConfig = isCodingMode ? CONFIG.GENERATION.GEMINI_CODING : CONFIG.GENERATION.GEMINI;
 
   try {
     const response = await fetch(url, {
@@ -27,7 +30,7 @@ async function callGeminiAPI(questionText, customPrompt, apiKey, images = null) 
             text: prompt,
           }],
         }],
-        generationConfig: CONFIG.GENERATION.GEMINI,
+        generationConfig: generationConfig,
       }),
     });
 
@@ -58,9 +61,10 @@ async function callGeminiAPI(questionText, customPrompt, apiKey, images = null) 
   }
 }
 
-async function callChatGPTAPI(questionText, customPrompt, apiKey, images = null) {
+async function callChatGPTAPI(questionText, customPrompt, apiKey, images = null, isCodingMode = false) {
   const prompt = buildPrompt(questionText, customPrompt, images);
   const url = `${CONFIG.API.CHATGPT.BASE_URL}/${CONFIG.API.CHATGPT.ENDPOINT}`;
+  const generationConfig = isCodingMode ? CONFIG.GENERATION.CHATGPT_CODING : CONFIG.GENERATION.CHATGPT;
 
   try {
     const response = await fetch(url, {
@@ -75,8 +79,8 @@ async function callChatGPTAPI(questionText, customPrompt, apiKey, images = null)
           role: 'user',
           content: prompt,
         }],
-        temperature: CONFIG.GENERATION.CHATGPT.temperature,
-        max_tokens: CONFIG.GENERATION.CHATGPT.max_tokens,
+        temperature: generationConfig.temperature,
+        max_tokens: generationConfig.max_tokens,
       }),
       signal: AbortSignal.timeout(CONFIG.API.TIMEOUT),
     });
@@ -122,6 +126,168 @@ async function callChatGPTAPI(questionText, customPrompt, apiKey, images = null)
     }
     throw new Error(formatApiError(error));
   }
+}
+
+async function callCustomEndpointAPI(questionText, customPrompt, endpointUrl, images = null, isCodingMode = false) {
+  const prompt = buildPrompt(questionText, customPrompt, images);
+  const generationConfig = isCodingMode ? CONFIG.GENERATION.GEMINI_CODING : CONFIG.GENERATION.GEMINI;
+  
+  let url = normalizeEndpointUrl(endpointUrl);
+  const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+  
+  console.log('🌐 Base endpoint URL:', baseUrl);
+  
+  const possiblePaths = [
+    `/v1beta/${CONFIG.API.GEMINI.MODEL}/generateContent`,
+    `/v1beta/${CONFIG.API.GEMINI.MODEL}:generateContent`,
+    `/v1beta/models/${CONFIG.API.GEMINI.MODEL}:generateContent`,
+    `/v1beta/models/${CONFIG.API.GEMINI.MODEL}/generateContent`,
+    '/v1/chat/completions',
+    '/chat/completions',
+    '/completions',
+    '/',
+  ];
+  
+  let lastError = null;
+  
+  for (const path of possiblePaths) {
+    const testUrl = baseUrl + path;
+    console.log(`🔄 Trying endpoint: ${testUrl}`);
+    
+    try {
+      let requestBody;
+      let useGeminiFormat = path.includes('v1beta') || path.includes('generateContent');
+      
+      if (useGeminiFormat) {
+        requestBody = {
+          contents: [{
+            parts: [{
+              text: prompt,
+            }],
+          }],
+          generationConfig: generationConfig,
+        };
+      } else {
+        requestBody = {
+          model: CONFIG.API.CHATGPT.MODEL,
+          messages: [{
+            role: 'user',
+            content: prompt,
+          }],
+          temperature: generationConfig.temperature,
+          max_tokens: generationConfig.max_tokens,
+        };
+      }
+      
+      console.log('📤 Request body format:', useGeminiFormat ? 'Gemini' : 'OpenAI');
+      console.log('📤 Request body:', JSON.stringify(requestBody).substring(0, 200) + '...');
+      
+      const response = await fetch(testUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(CONFIG.API.TIMEOUT),
+      });
+
+      console.log(`📥 Response from ${testUrl}:`, response.status, response.statusText);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Custom endpoint response received:', Object.keys(data));
+        
+        if (useGeminiFormat) {
+          if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+            return data.candidates[0].content.parts[0].text;
+          } else if (data.content) {
+            return data.content;
+          }
+        } else {
+          if (data.choices && data.choices[0] && data.choices[0].message) {
+            return data.choices[0].message.content;
+          } else if (data.content) {
+            return data.content;
+          } else if (data.text) {
+            return data.text;
+          } else if (data.message && typeof data.message === 'string') {
+            return data.message;
+          } else if (data.response) {
+            return data.response;
+          }
+        }
+        
+        console.log('⚠️ Unexpected response format, trying next path...', data);
+        lastError = new Error('Invalid API response format - no valid answer found');
+        continue;
+      } else if (response.status === 404) {
+        console.log(`⚠️ 404 Not Found for ${testUrl}, trying next path...`);
+        lastError = new Error(`404 Not Found: ${testUrl}`);
+        continue;
+      } else {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          const errorText = await response.text();
+          errorData = { error: { message: errorText } };
+        }
+        const errorMessage = errorData?.error?.message || errorData?.detail || errorData?.error?.code || 'Unknown error';
+        console.error(`❌ Error from ${testUrl}:`, response.status, errorMessage);
+        
+        if (response.status === 401 || response.status === 403) {
+          throw new Error(`API authentication failed (${response.status}). Please check your endpoint.`);
+        } else if (response.status === 429) {
+          throw new Error(`Rate limit exceeded. Please try again later.`);
+        } else if (response.status === 404) {
+          lastError = new Error(`404 Not Found: ${testUrl}`);
+          continue;
+        } else {
+          lastError = new Error(`API request failed: ${response.status} - ${errorMessage}`);
+          continue;
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Error trying ${testUrl}:`, error);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        cause: error.cause,
+      });
+      
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out. Please try again.');
+      }
+      if (error.message.includes('authentication') || error.message.includes('Rate limit')) {
+        throw error;
+      }
+      
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('ERR_')) {
+        console.error('Network error detected. This might be:');
+        console.error('1. CORS issue (though extensions should bypass)');
+        console.error('2. SSL/TLS certificate problem');
+        console.error('3. Endpoint not accepting requests');
+        console.error('4. Network connectivity issue');
+        
+        lastError = new Error(`Failed to connect to ${testUrl}. Error: ${error.message}. Please check: 1) Endpoint is accessible, 2) Endpoint accepts POST requests, 3) No firewall blocking the request.`);
+        continue;
+      }
+      
+      lastError = error;
+      continue;
+    }
+  }
+  
+  if (lastError) {
+    const errorMsg = lastError.message || lastError.toString();
+    if (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError')) {
+      throw new Error(`Could not connect to endpoint ${baseUrl}. All paths failed with network errors. Please verify the endpoint is accessible and accepts POST requests.`);
+    }
+    throw lastError;
+  }
+  
+  throw new Error('Could not find valid endpoint path. Tried: ' + possiblePaths.join(', '));
 }
 
 function buildPrompt(questionText, customPrompt, images) {

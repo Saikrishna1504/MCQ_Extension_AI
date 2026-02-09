@@ -387,6 +387,47 @@
       42% { transform: scale(1.1); }
       70% { transform: scale(1); }
     }
+
+    .toggle-section {
+      text-align: left;
+    }
+
+    .toggle-label {
+      user-select: none;
+    }
+
+    .toggle-label input[type="checkbox"] {
+      appearance: none;
+      width: 44px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .toggle-label input[type="checkbox"]:checked {
+      background: #28a745;
+    }
+
+    .toggle-label input[type="checkbox"]::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .toggle-label input[type="checkbox"]:checked::before {
+      transform: translateX(20px);
+    }
   </style>
 </head>
 <body>
@@ -410,6 +451,15 @@
       <div class="button-group" style="margin-top: 12px;">
         <button id="changeApiBtn" class="btn btn-secondary">Change API Key</button>
         <button id="removeApiBtn" class="btn btn-danger">Remove API Key</button>
+      </div>
+      <div class="toggle-section" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2);">
+        <label class="toggle-label" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+          <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 13px; margin-bottom: 4px;">📄 Full Page Selection</div>
+            <div style="font-size: 11px; opacity: 0.85; line-height: 1.4;">Enable to select entire page text for coding questions and hidden test cases</div>
+          </div>
+          <input type="checkbox" id="fullPageToggle" style="margin-left: 12px; width: 40px; height: 20px; cursor: pointer;">
+        </label>
       </div>
     </div>
     

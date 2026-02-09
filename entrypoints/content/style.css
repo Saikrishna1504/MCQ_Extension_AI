@@ -259,6 +259,109 @@
   }
 }
 
+/* Code Display Styles */
+.code-container {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.code-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.copy-code-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.copy-code-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.copy-code-btn:active {
+  transform: translateY(0);
+}
+
+.copy-code-btn.copied {
+  background: rgba(40, 167, 69, 0.3);
+  border-color: rgba(40, 167, 69, 0.5);
+}
+
+.copy-icon {
+  font-size: 14px;
+}
+
+.code-block {
+  margin: 0;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.4);
+  overflow-x: auto;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #e8e8e8;
+  white-space: pre;
+  tab-size: 4;
+  -moz-tab-size: 4;
+}
+
+.code-block code {
+  display: block;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  white-space: pre;
+  word-wrap: normal;
+  overflow-wrap: normal;
+}
+
+.code-block::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.code-block::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.code-block::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.code-block::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 /* Responsive Design */
 @media (max-width: 480px) {
   #quiz-prompt-dialog {
@@ -271,6 +374,20 @@
     padding: 20px;
     padding-top: 40px;
     font-size: 14px;
+  }
+  
+  .code-block {
+    font-size: 12px;
+    padding: 16px;
+  }
+  
+  .code-header {
+    padding: 10px 12px;
+  }
+  
+  .copy-code-btn {
+    padding: 5px 10px;
+    font-size: 12px;
   }
   
   #quiz-solver-magnify-icon {

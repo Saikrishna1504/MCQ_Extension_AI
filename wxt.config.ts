@@ -8,11 +8,14 @@ export default defineConfig({
     permissions: [
       'activeTab',
       'storage',
-      'scripting'
+      'scripting',
+      'notifications'
     ],
     host_permissions: [
       "https://generativelanguage.googleapis.com/*",
-      "https://api.openai.com/*"
+      "https://api.openai.com/*",
+      "https://*/*",
+      "http://*/*"
     ],
     action: {
       default_popup: 'popup/index.html',
@@ -21,8 +24,8 @@ export default defineConfig({
     commands: {
       "solve-question": {
         "suggested_key": {
-          "default": "Ctrl+Shift+Q",
-          "mac": "Command+Shift+Q"
+          "default": "Ctrl+Shift+S",
+          "mac": "Command+Shift+S"
         },
         "description": "Solve highlighted question instantly"
       }

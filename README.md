@@ -8,7 +8,7 @@ A professional Chrome extension powered by Google's Gemini AI that helps you sol
 - **⚡ Instant Answers** - Get AI-powered solutions in seconds
 - **🎨 Modern UI** - Clean, accessible interface with smooth animations
 - **🔑 API Key Management** - Easy setup and management of your API key
-- **⌨️ Keyboard Shortcuts** - Quick access with Ctrl+Shift+Q
+- **⌨️ Keyboard Shortcuts** - Quick access with Ctrl+Shift+S
 - **🔄 Auto-Reload Support** - Handles extension updates gracefully
 - **🛡️ Robust Error Handling** - Clear error messages and recovery
 
@@ -41,8 +41,8 @@ A professional Chrome extension powered by Google's Gemini AI that helps you sol
 4. **View the answer** in the response section
 
 ### **Method 2: Keyboard Shortcut**
-1. **Select question text**
-2. Press **Ctrl+Shift+Q** (or **Command+Shift+Q** on Mac)
+1. **Select question text** (or enable Full Page Selection mode)
+2. Press **Ctrl+Shift+S** (or **Command+Shift+S** on Mac)
 3. **Dialog opens** with auto-send functionality
 
 ## 🔑 API Key Management

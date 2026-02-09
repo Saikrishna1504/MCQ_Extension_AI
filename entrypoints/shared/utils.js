@@ -62,6 +62,13 @@ export async function getProvider() {
   });
 }
 
+export async function getFullPageSelection() {
+  return await safeBrowserCall(async () => {
+    const data = await browser.storage.sync.get([CONFIG.STORAGE.FULL_PAGE_SELECTION]);
+    return data[CONFIG.STORAGE.FULL_PAGE_SELECTION] || false;
+  });
+}
+
 export function formatApiError(error) {
   const errorMessage = error?.message || '';
   
@@ -69,7 +76,7 @@ export function formatApiError(error) {
     return CONFIG.ERRORS.EXTENSION_RELOADED;
   }
   
-  if (errorMessage.includes('Request timeout') || errorMessage.includes('timeout')) {
+  if (errorMessage.includes('Request timeout') || errorMessage.includes('timeout') || errorMessage.includes('AbortError')) {
     return CONFIG.ERRORS.REQUEST_TIMEOUT;
   }
   
@@ -81,11 +88,15 @@ export function formatApiError(error) {
     return CONFIG.ERRORS.RATE_LIMIT;
   }
   
-  if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+  if (errorMessage.includes('Custom endpoint connection failed')) {
+    return errorMessage;
+  }
+  
+  if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('NetworkError') || errorMessage.includes('Failed to fetch')) {
     return CONFIG.ERRORS.NETWORK_ERROR;
   }
   
-  return CONFIG.ERRORS.UNKNOWN_ERROR;
+  return errorMessage || CONFIG.ERRORS.UNKNOWN_ERROR;
 }
 
 export function formatAnswer(answer) {
@@ -185,4 +196,32 @@ export function debounce(func, wait) {
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
+}
+
+export function isCustomEndpoint(apiKey) {
+  if (!apiKey) return false;
+  
+  const trimmed = apiKey.trim();
+  
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return true;
+  }
+  
+  if (/^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}/.test(trimmed)) {
+    return true;
+  }
+  
+  return false;
+}
+
+export function normalizeEndpointUrl(url) {
+  if (!url) return url;
+  
+  let normalized = url.trim();
+  
+  if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
+    normalized = 'https://' + normalized;
+  }
+  
+  return normalized;
 }

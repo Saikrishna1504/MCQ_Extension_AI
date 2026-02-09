@@ -188,9 +188,87 @@ export class PromptDialog {
       '</div>';
   }
 
-  showAnswer(answer) {
+  showAnswer(answer, isCodingMode = false) {
     const answerContent = this.dialog.querySelector('#prompt-answer-content');
-    answerContent.innerHTML = answer;
+    
+    if (isCodingMode) {
+      const formattedCode = this.formatCode(answer);
+      answerContent.innerHTML = `
+        <div class="code-container">
+          <div class="code-header">
+            <span class="code-label">📄 Code Solution</span>
+            <button class="copy-code-btn" id="copy-code-btn" title="Copy code">
+              <span class="copy-icon">📋</span>
+              <span class="copy-text">Copy</span>
+            </button>
+          </div>
+          <pre class="code-block"><code id="code-content">${this.escapeHtml(formattedCode)}</code></pre>
+        </div>
+      `;
+      
+      const copyBtn = answerContent.querySelector('#copy-code-btn');
+      const codeContent = answerContent.querySelector('#code-content');
+      
+      if (copyBtn && codeContent) {
+        copyBtn.addEventListener('click', async () => {
+          try {
+            const textToCopy = codeContent.textContent || codeContent.innerText;
+            await navigator.clipboard.writeText(textToCopy);
+            
+            const originalText = copyBtn.querySelector('.copy-text').textContent;
+            copyBtn.querySelector('.copy-text').textContent = 'Copied!';
+            copyBtn.querySelector('.copy-icon').textContent = '✅';
+            copyBtn.classList.add('copied');
+            
+            setTimeout(() => {
+              copyBtn.querySelector('.copy-text').textContent = originalText;
+              copyBtn.querySelector('.copy-icon').textContent = '📋';
+              copyBtn.classList.remove('copied');
+            }, 2000);
+          } catch (error) {
+            console.error('Failed to copy code:', error);
+            copyBtn.querySelector('.copy-text').textContent = 'Failed';
+            setTimeout(() => {
+              copyBtn.querySelector('.copy-text').textContent = 'Copy';
+            }, 2000);
+          }
+        });
+      }
+    } else {
+      answerContent.innerHTML = answer;
+    }
+  }
+
+  formatCode(code) {
+    if (!code) return '';
+    
+    const lines = code.split('\n');
+    let minIndent = Infinity;
+    
+    const codeLines = lines.filter(line => line.trim().length > 0);
+    if (codeLines.length === 0) return code;
+    
+    codeLines.forEach(line => {
+      const indent = line.match(/^(\s*)/)[0].length;
+      if (indent < minIndent) {
+        minIndent = indent;
+      }
+    });
+    
+    if (minIndent === Infinity || minIndent === 0) {
+      return code;
+    }
+    
+    return lines.map(line => {
+      if (line.trim().length === 0) return '';
+      return line.substring(minIndent);
+    }).join('\n');
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   showError(errorMessage) {
