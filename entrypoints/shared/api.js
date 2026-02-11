@@ -135,8 +135,6 @@ async function callCustomEndpointAPI(questionText, customPrompt, endpointUrl, im
   let url = normalizeEndpointUrl(endpointUrl);
   const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
   
-  console.log('🌐 Base endpoint URL:', baseUrl);
-  
   const possiblePaths = [
     `/v1beta/${CONFIG.API.GEMINI.MODEL}/generateContent`,
     `/v1beta/${CONFIG.API.GEMINI.MODEL}:generateContent`,
@@ -152,7 +150,6 @@ async function callCustomEndpointAPI(questionText, customPrompt, endpointUrl, im
   
   for (const path of possiblePaths) {
     const testUrl = baseUrl + path;
-    console.log(`🔄 Trying endpoint: ${testUrl}`);
     
     try {
       let requestBody;
@@ -179,9 +176,6 @@ async function callCustomEndpointAPI(questionText, customPrompt, endpointUrl, im
         };
       }
       
-      console.log('📤 Request body format:', useGeminiFormat ? 'Gemini' : 'OpenAI');
-      console.log('📤 Request body:', JSON.stringify(requestBody).substring(0, 200) + '...');
-      
       const response = await fetch(testUrl, {
         method: 'POST',
         headers: {
@@ -192,11 +186,8 @@ async function callCustomEndpointAPI(questionText, customPrompt, endpointUrl, im
         signal: AbortSignal.timeout(CONFIG.API.TIMEOUT),
       });
 
-      console.log(`📥 Response from ${testUrl}:`, response.status, response.statusText);
-
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Custom endpoint response received:', Object.keys(data));
         
         if (useGeminiFormat) {
           if (data.candidates && data.candidates[0] && data.candidates[0].content) {
@@ -218,11 +209,9 @@ async function callCustomEndpointAPI(questionText, customPrompt, endpointUrl, im
           }
         }
         
-        console.log('⚠️ Unexpected response format, trying next path...', data);
         lastError = new Error('Invalid API response format - no valid answer found');
         continue;
       } else if (response.status === 404) {
-        console.log(`⚠️ 404 Not Found for ${testUrl}, trying next path...`);
         lastError = new Error(`404 Not Found: ${testUrl}`);
         continue;
       } else {
@@ -234,7 +223,6 @@ async function callCustomEndpointAPI(questionText, customPrompt, endpointUrl, im
           errorData = { error: { message: errorText } };
         }
         const errorMessage = errorData?.error?.message || errorData?.detail || errorData?.error?.code || 'Unknown error';
-        console.error(`❌ Error from ${testUrl}:`, response.status, errorMessage);
         
         if (response.status === 401 || response.status === 403) {
           throw new Error(`API authentication failed (${response.status}). Please check your endpoint.`);
@@ -249,13 +237,6 @@ async function callCustomEndpointAPI(questionText, customPrompt, endpointUrl, im
         }
       }
     } catch (error) {
-      console.error(`❌ Error trying ${testUrl}:`, error);
-      console.error('Error details:', {
-        name: error.name,
-        message: error.message,
-        cause: error.cause,
-      });
-      
       if (error.name === 'AbortError') {
         throw new Error('Request timed out. Please try again.');
       }
@@ -264,12 +245,6 @@ async function callCustomEndpointAPI(questionText, customPrompt, endpointUrl, im
       }
       
       if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('ERR_')) {
-        console.error('Network error detected. This might be:');
-        console.error('1. CORS issue (though extensions should bypass)');
-        console.error('2. SSL/TLS certificate problem');
-        console.error('3. Endpoint not accepting requests');
-        console.error('4. Network connectivity issue');
-        
         lastError = new Error(`Failed to connect to ${testUrl}. Error: ${error.message}. Please check: 1) Endpoint is accessible, 2) Endpoint accepts POST requests, 3) No firewall blocking the request.`);
         continue;
       }

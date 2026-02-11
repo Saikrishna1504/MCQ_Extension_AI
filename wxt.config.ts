@@ -2,9 +2,9 @@ import { defineConfig } from 'wxt';
 
 export default defineConfig({
   manifest: {
-    name: 'MCQ Help Buddy',
+    name: 'SmartBuddy+',
     version: '2.0.0',
-    description: 'Smart AI quiz solver - highlight text and get instant answers',
+    description: 'SmartBuddy+ - AI-powered quiz and coding helper for MCQs and problems',
     permissions: [
       'activeTab',
       'storage',
@@ -19,7 +19,7 @@ export default defineConfig({
     ],
     action: {
       default_popup: 'popup/index.html',
-      default_title: 'MCQ Help Buddy'
+      default_title: 'SmartBuddy+'
     },
     commands: {
       "solve-question": {

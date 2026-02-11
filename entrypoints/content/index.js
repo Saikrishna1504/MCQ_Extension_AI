@@ -47,7 +47,6 @@ export default defineContentScript({
           this.promptDialog = new PromptDialog();
           this.attachEventListeners();
           
-          console.log('✅ Quiz Solver Ready! Highlight text and click the 🔍 icon!');
           this.isInitialized = true;
         } catch (error) {
           console.error('❌ Extension initialization error:', error);
@@ -146,7 +145,6 @@ export default defineContentScript({
           
           let answer;
           if (isCustomEndpoint) {
-            console.log('🌐 Custom endpoint detected, routing through background script...');
             try {
               const response = await browser.runtime.sendMessage({
                 action: 'callCustomEndpoint',
@@ -247,12 +245,11 @@ export default defineContentScript({
               this.getAnswer();
             }, CONFIG.UI.DIALOG_AUTO_SEND_DELAY);
           } else {
-            console.log('Please select some text first or enable full page selection mode');
-            alert('Please select some text first or enable full page selection mode in the extension popup.');
+            // No text selected - user needs to select text or enable full page mode
           }
         } catch (error) {
           console.error('❌ Error in handleKeyboardShortcut:', error);
-          alert('Error processing shortcut. Please try again.');
+          // Error processing shortcut
         }
       }
 
@@ -286,19 +283,13 @@ export default defineContentScript({
 
     function setupMessageListener() {
       if (messageListenerSetup) {
-        console.log('⚠️ Message listener already set up');
         return;
       }
       
       try {
-        console.log('🔧 Setting up message listener...');
         browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-          console.log('📨 Message received in content script:', request);
-          
           if (request.action === 'solveQuestion' && request.text) {
-            console.log('📝 Handling solveQuestion action');
             if (!quizSolverInstance) {
-              console.log('🔄 Initializing quiz solver...');
               initializeQuizSolver();
             }
             if (quizSolverInstance && quizSolverInstance.promptDialog) {
@@ -327,11 +318,9 @@ export default defineContentScript({
           }
           
           if (request.action === 'solveSelectedText') {
-            console.log('⌨️ Handling solveSelectedText action (keyboard shortcut)');
             (async () => {
               try {
                 if (!quizSolverInstance) {
-                  console.log('🔄 Initializing quiz solver for shortcut...');
                   initializeQuizSolver();
                   await new Promise(resolve => setTimeout(resolve, 100));
                 }
@@ -349,9 +338,7 @@ export default defineContentScript({
                   return;
                 }
                 
-                console.log('✅ Calling handleKeyboardShortcut...');
                 await quizSolverInstance.handleKeyboardShortcut();
-                console.log('✅ handleKeyboardShortcut completed');
                 sendResponse({ success: true });
               } catch (error) {
                 console.error('❌ Error handling solveSelectedText:', error);
@@ -364,11 +351,9 @@ export default defineContentScript({
             return true;
           }
           
-          console.log('⚠️ Unknown action:', request.action);
           return false;
         });
         messageListenerSetup = true;
-        console.log('✅ Message listener set up successfully');
       } catch (error) {
         console.error('❌ Failed to setup message listener:', error);
       }
@@ -394,12 +379,11 @@ export default defineContentScript({
       } catch (error) {
         console.error('❌ Failed to initialize Quiz Solver:', error);
         if (isExtensionContextError(error)) {
-          // Context issue detected during initialization
+          // Extension context invalidated
         }
       }
     }
 
-    console.log('🚀 Content script loaded on:', window.location.href);
     setupMessageListener();
 
     if (document.readyState === 'loading') {

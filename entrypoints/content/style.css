@@ -1,4 +1,4 @@
-/* MCQ Help Buddy Styles - Enhanced & Accessible */
+/* SmartBuddy+ Styles - Enhanced & Accessible */
 
 /* Prompt Dialog */
 #quiz-prompt-dialog {
@@ -401,10 +401,20 @@
   scrollbar-color: rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.2);
   position: relative;
   cursor: grab;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .code-block-wrapper.is-panning {
-  cursor: grabbing;
+  cursor: grabbing !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.code-block-wrapper.is-panning * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  cursor: grabbing !important;
 }
 
 .code-block-wrapper::-webkit-scrollbar {

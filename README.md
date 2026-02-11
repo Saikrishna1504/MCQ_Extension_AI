@@ -1,16 +1,15 @@
-# 🔍 MCQ Help Buddy - Chrome Extension
+# 🧠 SmartBuddy+ - Chrome Extension
 
-A professional Chrome extension powered by Google's Gemini AI that helps you solve multiple-choice questions with detailed explanations. It features a clean, modern interface with a focus on user experience and provides instant AI-powered assistance for your MCQs.
+A powerful Chrome extension powered by AI (Gemini & ChatGPT) that helps you solve quizzes, coding problems, and multiple-choice questions instantly. SmartBuddy+ features a sleek dark theme with purple/pink accents and provides instant AI-powered assistance for your questions.
 
 ## 🌟 Features
 
-- **🎯 MCQ-Optimized** - Specifically designed for multiple-choice questions
+- **🎯 Quiz-Optimized** - Designed for quizzes, MCQs, and coding problems
 - **⚡ Instant Answers** - Get AI-powered solutions in seconds
-- **🎨 Modern UI** - Clean, accessible interface with smooth animations
-- **🔑 API Key Management** - Easy setup and management of your API key
+- **🔑 Multi-Provider Support** - Works with Google Gemini or OpenAI ChatGPT
+- **🎨 Draggable Dialog** - Move the answer box anywhere on screen
 - **⌨️ Keyboard Shortcuts** - Quick access with Ctrl+Shift+S
 - **🔄 Auto-Reload Support** - Handles extension updates gracefully
-- **🛡️ Robust Error Handling** - Clear error messages and recovery
 
 ## 🚀 Installation
 
@@ -101,4 +100,4 @@ npm run build:firefox
 
 ---
 
-**Note**: This extension requires a valid Google Gemini API key to function. Get yours free at [Google AI Studio](https://makersuite.google.com/app/apikey).
+**Note**: This extension requires a valid AI API key (Gemini or ChatGPT) to function. Get your free Gemini API key at [Google AI Studio](https://makersuite.google.com/app/apikey) or ChatGPT key at [OpenAI Platform](https://platform.openai.com/api-keys).

@@ -414,10 +414,7 @@ class PopupManager {
             signal: AbortSignal.timeout(10000),
           });
           
-          console.log('Custom endpoint test response:', response.status, response.statusText);
-          
           if (response.status === 401 || response.status === 403) {
-            console.log('Custom endpoint returned auth error, but endpoint is reachable');
             return true;
           }
           
@@ -426,23 +423,18 @@ class PopupManager {
           }
           
           if (response.status >= 400 && response.status < 500) {
-            const errorText = await response.text().catch(() => '');
-            console.log('Custom endpoint error response:', response.status, errorText.substring(0, 100));
             return true;
           }
           
           return response.ok || response.status < 500;
         } catch (error) {
-          console.error('Custom endpoint validation error:', error.message);
           if (error.message.includes('429') || error.message.includes('rate limit')) {
             return true;
           }
           if (error.message.includes('CORS') || error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-            console.log('Network/CORS error - endpoint may still be valid (extension can bypass CORS)');
             return true;
           }
           if (error.name === 'AbortError' || error.message.includes('timeout')) {
-            console.log('Timeout error - endpoint may still be valid');
             return true;
           }
           return false;

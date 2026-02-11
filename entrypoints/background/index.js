@@ -15,7 +15,7 @@ export default defineBackground(() => {
         try {
           await browser.action.openPopup();
         } catch (error) {
-          console.log('Could not open popup automatically');
+          // Popup couldn't be opened automatically; user can open it manually
         }
       }
     } catch (error) {
@@ -53,7 +53,7 @@ export default defineBackground(() => {
       await browser.notifications.create({
         type: 'basic',
         iconUrl: '/icons/icon48.png',
-        title: 'MCQ Help Buddy',
+        title: 'SmartBuddy+',
         message,
       });
     } catch (error) {
@@ -63,14 +63,12 @@ export default defineBackground(() => {
 
   async function sendMessageToContentScript(tabId, message, retries = 2) {
     try {
-      console.log('📤 Sending message to content script:', message, 'Tab ID:', tabId);
       const response = await Promise.race([
         browser.tabs.sendMessage(tabId, message),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Message timeout')), 5000)
         )
       ]);
-      console.log('✅ Received response from content script:', response);
       if (response && response.success) {
         return response;
       }
@@ -78,7 +76,6 @@ export default defineBackground(() => {
     } catch (error) {
       console.error(`❌ Error sending message (retries left: ${retries}):`, error.message);
       if (retries > 0) {
-        console.log('🔄 Attempting to inject content script and retry...');
         try {
           await ensureContentScript(tabId);
           await new Promise(resolve => setTimeout(resolve, 500));
@@ -93,7 +90,6 @@ export default defineBackground(() => {
   }
 
   browser.commands.onCommand.addListener(async (command) => {
-    console.log('⌨️ Command received:', command, 'Expected:', CONFIG.SHORTCUTS.SOLVE_QUESTION);
     if (command === CONFIG.SHORTCUTS.SOLVE_QUESTION) {
       try {
         const tabs = await browser.tabs.query({ active: true, currentWindow: true });
@@ -105,7 +101,6 @@ export default defineBackground(() => {
         
         const tabId = tabs[0].id;
         const tabUrl = tabs[0].url;
-        console.log('⌨️ Keyboard shortcut triggered! Tab ID:', tabId, 'URL:', tabUrl);
         
         if (tabUrl.startsWith('chrome://') || tabUrl.startsWith('edge://') || tabUrl.startsWith('about:')) {
           console.error('❌ Cannot run on browser internal pages');
@@ -114,10 +109,9 @@ export default defineBackground(() => {
         }
         
         try {
-          const response = await sendMessageToContentScript(tabId, {
+          await sendMessageToContentScript(tabId, {
             action: 'solveSelectedText',
           });
-          console.log('✅ Content script response:', response);
         } catch (error) {
           console.error('❌ Error sending message to content script:', error);
           await showErrorNotification(
@@ -130,12 +124,8 @@ export default defineBackground(() => {
           'Unable to process shortcut. Please refresh the page and try again.'
         );
       }
-    } else {
-      console.log('⚠️ Unknown command:', command);
     }
   });
-  
-  console.log('✅ Background script loaded. Command listener registered for:', CONFIG.SHORTCUTS.SOLVE_QUESTION);
 
   browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'getApiKey') {
@@ -159,7 +149,6 @@ export default defineBackground(() => {
     if (request.action === 'callCustomEndpoint') {
       (async () => {
         try {
-          console.log('🌐 Background: Calling custom endpoint');
           const result = await callAIAPI(
             request.questionText,
             request.customPrompt,

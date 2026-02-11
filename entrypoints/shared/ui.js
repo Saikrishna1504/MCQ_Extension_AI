@@ -160,6 +160,12 @@ export class PromptDialog {
     this.setupDragHandlers();
     this.setupCloseHandler();
     this.setupKeyboardHandler();
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', () => {
+        this.ensureInViewport();
+      });
+    }
   }
 
   setupDragHandlers() {
@@ -247,14 +253,12 @@ export class PromptDialog {
   show(questionText, images = []) {
     this.dialog.style.display = 'flex';
     this.dialog.style.position = 'fixed';
-    
-    // Reset position to center on first show
-    if (!this.dialog.dataset.hasBeenPositioned) {
-      this.dialog.style.top = '50%';
-      this.dialog.style.left = '50%';
-      this.dialog.style.transform = 'translate(-50%, -50%)';
-      this.dialog.dataset.hasBeenPositioned = 'true';
-    }
+
+    // Always re-center on open
+    this.dialog.style.top = '50%';
+    this.dialog.style.left = '50%';
+    this.dialog.style.transform = 'translate(-50%, -50%)';
+    this.dialog.style.margin = '0';
     
     this.dialog.style.zIndex = CONFIG.UI.Z_INDEX.DIALOG;
     
@@ -262,6 +266,7 @@ export class PromptDialog {
     this.currentImages = images;
     
     this.showLoading();
+    this.ensureInViewport();
   }
 
   showLoading() {
@@ -287,9 +292,6 @@ export class PromptDialog {
                 <span class="copy-icon">📋</span>
                 <span class="copy-text">Copy</span>
               </button>
-              <button class="code-close-btn" id="code-close-btn" title="Close">
-                ✕
-              </button>
             </div>
           </div>
           <div class="code-block-wrapper">
@@ -299,7 +301,6 @@ export class PromptDialog {
       `;
       
       const copyBtn = answerContent.querySelector('#copy-code-btn');
-      const inlineCloseBtn = answerContent.querySelector('#code-close-btn');
       const codeContent = answerContent.querySelector('#code-content');
       
       if (copyBtn && codeContent) {
@@ -326,13 +327,6 @@ export class PromptDialog {
               copyBtn.querySelector('.copy-text').textContent = 'Copy';
             }, 2000);
           }
-        });
-      }
-
-      if (inlineCloseBtn) {
-        inlineCloseBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.hide();
         });
       }
 
@@ -404,46 +398,150 @@ export class PromptDialog {
     return this.currentImages;
   }
   
+  ensureInViewport() {
+    if (!this.dialog || this.dialog.style.display === 'none') {
+      return;
+    }
+
+    const rect = this.dialog.getBoundingClientRect();
+    let left = rect.left;
+    let top = rect.top;
+    const width = rect.width;
+    const height = rect.height;
+    const padding = 10;
+
+    // If still using translate(-50%, -50%), convert to explicit left/top
+    if (this.dialog.style.transform && this.dialog.style.transform.includes('translate')) {
+      this.dialog.style.left = `${rect.left}px`;
+      this.dialog.style.top = `${rect.top}px`;
+      this.dialog.style.transform = 'none';
+      this.dialog.style.margin = '0';
+      left = rect.left;
+      top = rect.top;
+    }
+
+    const maxLeft = Math.max(padding, window.innerWidth - width - padding);
+    const maxTop = Math.max(padding, window.innerHeight - height - padding);
+
+    left = Math.min(Math.max(left, padding), maxLeft);
+    top = Math.min(Math.max(top, padding), maxTop);
+
+    this.dialog.style.left = `${left}px`;
+    this.dialog.style.top = `${top}px`;
+  }
+  
   setupCodePanning(wrapper) {
     let isPanning = false;
+    let hasMoved = false;
     let startX = 0;
     let startY = 0;
     let scrollLeft = 0;
     let scrollTop = 0;
+    const DRAG_THRESHOLD = 5; // pixels to move before starting pan
 
     const onMouseDown = (e) => {
       if (e.button !== 0) return;
-      // Avoid starting pan when clicking header buttons
-      if (e.target.closest('.code-header') || e.target.closest('.copy-code-btn')) {
+      // Avoid starting pan when clicking buttons or links
+      if (e.target.closest('.code-header') || 
+          e.target.closest('.copy-code-btn') || 
+          e.target.closest('.code-close-btn') ||
+          e.target.closest('a') ||
+          e.target.closest('button')) {
         return;
       }
-      isPanning = true;
-      wrapper.classList.add('is-panning');
+      
+      // Allow text selection - don't prevent default yet
+      hasMoved = false;
       startX = e.clientX;
       startY = e.clientY;
       scrollLeft = wrapper.scrollLeft;
       scrollTop = wrapper.scrollTop;
-      wrapper.style.cursor = 'grabbing';
-      e.preventDefault();
     };
 
     const onMouseMove = (e) => {
-      if (!isPanning) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      wrapper.scrollLeft = scrollLeft - dx;
-      wrapper.scrollTop = scrollTop - dy;
+      if (hasMoved === false) {
+        const dx = Math.abs(e.clientX - startX);
+        const dy = Math.abs(e.clientY - startY);
+        
+        // Only start panning if moved beyond threshold
+        if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
+          hasMoved = true;
+          isPanning = true;
+          wrapper.classList.add('is-panning');
+          wrapper.style.cursor = 'grabbing';
+          wrapper.style.userSelect = 'none';
+          // Now prevent default to stop text selection
+          e.preventDefault();
+        }
+      }
+      
+      if (isPanning) {
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        wrapper.scrollLeft = scrollLeft - dx;
+        wrapper.scrollTop = scrollTop - dy;
+        e.preventDefault();
+      }
     };
 
     const endPan = () => {
-      if (!isPanning) return;
-      isPanning = false;
-      wrapper.classList.remove('is-panning');
-      wrapper.style.cursor = '';
+      if (isPanning) {
+        isPanning = false;
+        wrapper.classList.remove('is-panning');
+        wrapper.style.cursor = '';
+        wrapper.style.userSelect = '';
+      }
+      hasMoved = false;
+    };
+
+    // Touch events for mobile
+    const onTouchStart = (e) => {
+      if (e.target.closest('.code-header') || 
+          e.target.closest('.copy-code-btn') || 
+          e.target.closest('.code-close-btn')) {
+        return;
+      }
+      const touch = e.touches[0];
+      hasMoved = false;
+      startX = touch.clientX;
+      startY = touch.clientY;
+      scrollLeft = wrapper.scrollLeft;
+      scrollTop = wrapper.scrollTop;
+    };
+
+    const onTouchMove = (e) => {
+      if (hasMoved === false) {
+        const touch = e.touches[0];
+        const dx = Math.abs(touch.clientX - startX);
+        const dy = Math.abs(touch.clientY - startY);
+        
+        if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
+          hasMoved = true;
+          isPanning = true;
+          wrapper.classList.add('is-panning');
+          wrapper.style.userSelect = 'none';
+        }
+      }
+      
+      if (isPanning) {
+        const touch = e.touches[0];
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        wrapper.scrollLeft = scrollLeft - dx;
+        wrapper.scrollTop = scrollTop - dy;
+        e.preventDefault();
+      }
+    };
+
+    const onTouchEnd = () => {
+      endPan();
     };
 
     wrapper.addEventListener('mousedown', onMouseDown);
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', endPan);
+    wrapper.addEventListener('touchstart', onTouchStart, { passive: false });
+    wrapper.addEventListener('touchmove', onTouchMove, { passive: false });
+    wrapper.addEventListener('touchend', onTouchEnd);
   }
 }
