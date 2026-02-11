@@ -12,6 +12,9 @@
     "postinstall": "wxt prepare"
   },
   "devDependencies": {
-    "wxt": "^0.18.2"
+    "wxt": "^0.20.14"
+  },
+  "dependencies": {
+    "webextension-polyfill": "^0.12.0"
   }
 }

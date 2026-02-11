@@ -1,4 +1,4 @@
-import { defineBackground } from 'wxt/sandbox';
+import { defineBackground } from 'wxt/utils/define-background';
 import browser from 'webextension-polyfill';
 import { CONFIG } from '../shared/config.js';
 import { callAIAPI } from '../shared/api.js';

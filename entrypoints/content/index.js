@@ -1,4 +1,4 @@
-import { defineContentScript } from 'wxt/sandbox';
+import { defineContentScript } from 'wxt/utils/define-content-script';
 import browser from 'webextension-polyfill';
 import { CONFIG } from '../shared/config.js';
 import { 

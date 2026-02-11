@@ -135,6 +135,8 @@ export class PromptDialog {
     this.dialog = null;
     this.currentQuestion = null;
     this.currentImages = null;
+    this.isDragging = false;
+    this.dragOffset = { x: 0, y: 0 };
     this.create();
   }
 
@@ -145,7 +147,8 @@ export class PromptDialog {
     this.dialog.setAttribute('aria-labelledby', 'prompt-dialog-title');
     this.dialog.setAttribute('aria-modal', 'true');
     this.dialog.innerHTML = 
-      '<div class="prompt-dialog-header">' +
+      '<div class="prompt-dialog-header" id="prompt-dialog-header">' +
+        '<span class="prompt-drag-handle" title="Drag to move">⋮⋮</span>' +
         '<button class="prompt-close-btn" id="prompt-close-btn" aria-label="Close dialog">×</button>' +
       '</div>' +
       '<div class="prompt-answer-content" id="prompt-answer-content">' +
@@ -154,10 +157,86 @@ export class PromptDialog {
 
     document.body.appendChild(this.dialog);
 
-    this.dialog.querySelector('#prompt-close-btn').addEventListener('click', () => {
-      this.hide();
+    this.setupDragHandlers();
+    this.setupCloseHandler();
+    this.setupKeyboardHandler();
+  }
+
+  setupDragHandlers() {
+    const header = this.dialog.querySelector('#prompt-dialog-header');
+    if (!header) return;
+
+    header.style.cursor = 'move';
+    
+    header.addEventListener('mousedown', (e) => {
+      // Don't start drag if clicking on close button
+      if (e.target.closest('.prompt-close-btn')) {
+        return;
+      }
+      
+      this.isDragging = true;
+      const rect = this.dialog.getBoundingClientRect();
+      this.dragOffset.x = e.clientX - rect.left;
+      this.dragOffset.y = e.clientY - rect.top;
+      
+      // If dialog is centered, convert to absolute positioning
+      if (this.dialog.style.transform && this.dialog.style.transform.includes('translate')) {
+        const currentLeft = rect.left;
+        const currentTop = rect.top;
+        this.dialog.style.left = `${currentLeft}px`;
+        this.dialog.style.top = `${currentTop}px`;
+        this.dialog.style.transform = 'none';
+        this.dialog.style.margin = '0';
+      }
+      
+      this.dialog.style.cursor = 'move';
+      e.preventDefault();
     });
 
+    document.addEventListener('mousemove', (e) => {
+      if (!this.isDragging) return;
+      
+      const dialogWidth = this.dialog.offsetWidth;
+      const dialogHeight = this.dialog.offsetHeight;
+      const maxX = window.innerWidth - dialogWidth;
+      const maxY = window.innerHeight - dialogHeight;
+      
+      let newX = e.clientX - this.dragOffset.x;
+      let newY = e.clientY - this.dragOffset.y;
+      
+      // Constrain to viewport with some padding
+      const padding = 10;
+      newX = Math.max(padding, Math.min(newX, maxX - padding));
+      newY = Math.max(padding, Math.min(newY, maxY - padding));
+      
+      this.dialog.style.left = `${newX}px`;
+      this.dialog.style.top = `${newY}px`;
+      this.dialog.style.transform = 'none';
+      this.dialog.style.margin = '0';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (this.isDragging) {
+        this.isDragging = false;
+        this.dialog.style.cursor = '';
+        if (header) {
+          header.style.cursor = 'move';
+        }
+      }
+    });
+  }
+
+  setupCloseHandler() {
+    const closeBtn = this.dialog.querySelector('#prompt-close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.hide();
+      });
+    }
+  }
+
+  setupKeyboardHandler() {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && this.isVisible()) {
         this.hide();
@@ -166,11 +245,17 @@ export class PromptDialog {
   }
 
   show(questionText, images = []) {
-    this.dialog.style.display = 'block';
+    this.dialog.style.display = 'flex';
     this.dialog.style.position = 'fixed';
-    this.dialog.style.top = '50%';
-    this.dialog.style.left = '50%';
-    this.dialog.style.transform = 'translate(-50%, -50%)';
+    
+    // Reset position to center on first show
+    if (!this.dialog.dataset.hasBeenPositioned) {
+      this.dialog.style.top = '50%';
+      this.dialog.style.left = '50%';
+      this.dialog.style.transform = 'translate(-50%, -50%)';
+      this.dialog.dataset.hasBeenPositioned = 'true';
+    }
+    
     this.dialog.style.zIndex = CONFIG.UI.Z_INDEX.DIALOG;
     
     this.currentQuestion = questionText;
@@ -197,20 +282,29 @@ export class PromptDialog {
         <div class="code-container">
           <div class="code-header">
             <span class="code-label">📄 Code Solution</span>
-            <button class="copy-code-btn" id="copy-code-btn" title="Copy code">
-              <span class="copy-icon">📋</span>
-              <span class="copy-text">Copy</span>
-            </button>
+            <div class="code-header-actions">
+              <button class="copy-code-btn" id="copy-code-btn" title="Copy code">
+                <span class="copy-icon">📋</span>
+                <span class="copy-text">Copy</span>
+              </button>
+              <button class="code-close-btn" id="code-close-btn" title="Close">
+                ✕
+              </button>
+            </div>
           </div>
-          <pre class="code-block"><code id="code-content">${this.escapeHtml(formattedCode)}</code></pre>
+          <div class="code-block-wrapper">
+            <pre class="code-block"><code id="code-content">${this.escapeHtml(formattedCode)}</code></pre>
+          </div>
         </div>
       `;
       
       const copyBtn = answerContent.querySelector('#copy-code-btn');
+      const inlineCloseBtn = answerContent.querySelector('#code-close-btn');
       const codeContent = answerContent.querySelector('#code-content');
       
       if (copyBtn && codeContent) {
-        copyBtn.addEventListener('click', async () => {
+        copyBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
           try {
             const textToCopy = codeContent.textContent || codeContent.innerText;
             await navigator.clipboard.writeText(textToCopy);
@@ -234,8 +328,20 @@ export class PromptDialog {
           }
         });
       }
+
+      if (inlineCloseBtn) {
+        inlineCloseBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.hide();
+        });
+      }
+
+      const codeWrapper = answerContent.querySelector('.code-block-wrapper');
+      if (codeWrapper) {
+        this.setupCodePanning(codeWrapper);
+      }
     } else {
-      answerContent.innerHTML = answer;
+      answerContent.innerHTML = `<div style="padding: 20px; overflow-y: auto; overflow-x: auto; flex: 1; min-height: 0; max-height: calc(90vh - 60px); scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.2);">${answer}</div>`;
     }
   }
 
@@ -273,7 +379,7 @@ export class PromptDialog {
 
   showError(errorMessage) {
     const answerContent = this.dialog.querySelector('#prompt-answer-content');
-    answerContent.innerHTML = `<div style="color: #ff6b6b;">${errorMessage}</div>`;
+    answerContent.innerHTML = `<div style="padding: 20px; color: #ff6b6b; overflow-y: auto; overflow-x: auto; flex: 1; min-height: 0; max-height: calc(90vh - 60px); scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.2);">${errorMessage}</div>`;
   }
 
   hide() {
@@ -287,7 +393,7 @@ export class PromptDialog {
   }
 
   isVisible() {
-    return this.dialog && this.dialog.style.display === 'block';
+    return this.dialog && (this.dialog.style.display === 'flex' || this.dialog.style.display === 'block');
   }
 
   getCurrentQuestion() {
@@ -296,5 +402,48 @@ export class PromptDialog {
 
   getCurrentImages() {
     return this.currentImages;
+  }
+  
+  setupCodePanning(wrapper) {
+    let isPanning = false;
+    let startX = 0;
+    let startY = 0;
+    let scrollLeft = 0;
+    let scrollTop = 0;
+
+    const onMouseDown = (e) => {
+      if (e.button !== 0) return;
+      // Avoid starting pan when clicking header buttons
+      if (e.target.closest('.code-header') || e.target.closest('.copy-code-btn')) {
+        return;
+      }
+      isPanning = true;
+      wrapper.classList.add('is-panning');
+      startX = e.clientX;
+      startY = e.clientY;
+      scrollLeft = wrapper.scrollLeft;
+      scrollTop = wrapper.scrollTop;
+      wrapper.style.cursor = 'grabbing';
+      e.preventDefault();
+    };
+
+    const onMouseMove = (e) => {
+      if (!isPanning) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      wrapper.scrollLeft = scrollLeft - dx;
+      wrapper.scrollTop = scrollTop - dy;
+    };
+
+    const endPan = () => {
+      if (!isPanning) return;
+      isPanning = false;
+      wrapper.classList.remove('is-panning');
+      wrapper.style.cursor = '';
+    };
+
+    wrapper.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', endPan);
   }
 }
