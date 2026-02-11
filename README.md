@@ -94,7 +94,7 @@ npm run build:firefox
 - **Optimized prompting** for multiple-choice questions
 - **Context-aware** question enhancement with automatic option detection
 
-## 🎯 Version: 2.0.0
+## 🎯 Version: 3.0.0
 
 **Production-ready extension with clean, professional interface and robust functionality.**
 
